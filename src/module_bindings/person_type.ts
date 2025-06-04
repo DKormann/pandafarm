@@ -34,7 +34,7 @@ export type Person = {
   id: Identity,
   name: string,
   highscore: number,
-  highscoreRep: string,
+  highscoreState: number[],
   bank: number,
   gameState: number[],
 };
@@ -52,7 +52,7 @@ export namespace Person {
       new ProductTypeElement("id", AlgebraicType.createIdentityType()),
       new ProductTypeElement("name", AlgebraicType.createStringType()),
       new ProductTypeElement("highscore", AlgebraicType.createU32Type()),
-      new ProductTypeElement("highscoreRep", AlgebraicType.createStringType()),
+      new ProductTypeElement("highscoreState", AlgebraicType.createArrayType(AlgebraicType.createU32Type())),
       new ProductTypeElement("bank", AlgebraicType.createU32Type()),
       new ProductTypeElement("gameState", AlgebraicType.createArrayType(AlgebraicType.createU32Type())),
     ]);

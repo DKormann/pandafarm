@@ -1,12 +1,11 @@
 
 import { Identity } from "@clockworklabs/spacetimedb-sdk"
-import { Stored } from "./store"
+import { Stored, Writable } from "./store"
 import { DbConnection,ErrorContext, EventContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings"
 
 
 // import {create_game} from "./game"
 import { createGame } from "./online_game"
-
 import { createHTMLElement } from "./html"
 import { createLeaderboard } from "./leaderboard"
 
@@ -18,8 +17,8 @@ const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 const userId = new Stored<string>(dbname + servermode + "-userId", "defaultUserId");
 
 let bank = new Stored<number>("bank", 99);
-
 let gameState = new Stored<number[]>("gameState", []);
+const highscore = new Stored<number[]>(dbname + servermode + "-highscore", [0,0,0,0,0,0,0,0,0,0]);
 
 
 const log = console.log
@@ -33,9 +32,23 @@ function updateGame(conn: DbConnection | SubscriptionEventContext){
       log("Person:", person.name, person.bank, person.gameState)
       bank.set(person.bank);
       gameState.set(person.gameState);
+      highscore.set(person.highscoreState);
     }
   })
   .subscribe(`SELECT * FROM person WHERE id = '${userId.get()}'`)
+}
+let competition = new Writable<Person[]>([]);
+
+function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
+  conn.subscriptionBuilder()
+  .onApplied((ctx: SubscriptionEventContext) => {
+
+    competition.set(Array.from(ctx.db.person.iter()))
+    log(competition.get())
+    log("Competition updated", competition.get());
+
+  })
+  .subscribe(`SELECT * FROM person WHERE highscore > 0 `)
 }
 
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
@@ -64,6 +77,9 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
       alert("Failed to set name:" + ctx.event.status.value)
     };
   })
+
+  updateCompetition(conn);
+
 
   conn.reducers.createPerson()
 
@@ -98,33 +114,28 @@ start_game(conn);
 
 function start_game(conn:DbConnection){
 
-  const leaderbutton = createHTMLElement("h3", {}, "Leaderboard");
+  // const leaderbutton = createHTMLElement("h3", {}, "Leaderboard");
 
-  document.body.appendChild(leaderbutton);
-  let username = new Stored <string> ("username", "myname");
+  // document.body.appendChild(leaderbutton);
 
+  let username = new Stored <string> ("username", "Unknown");
 
-  const competition = [
-    { name: "Alice", score: "100" },
-    { name: "Bob", score: "80" },
-    { name: "Charlie", score: "60" }
-  ]
-
-  let board = createLeaderboard( username, competition);
 
   username.subscribeLater((name) => {
     setPersonName(conn,name);
   })
 
+  let board = createLeaderboard(username, competition);
 
-  board.classList.add("hidden");
+
   document.body.appendChild(board);
-
 
 
   const game = createGame(
     bank,
     gameState,
+    highscore,
+    
     ()=> conn.reducers.sellGameWorth(),
     ()=> conn.reducers.playRed(),
     ()=> conn.reducers.playGreen(),
@@ -133,9 +144,9 @@ function start_game(conn:DbConnection){
   document.body.appendChild(game);
 
 
-  leaderbutton.addEventListener("click", () => {
-    board.classList.toggle("hidden");
-    game.classList.toggle("hidden");
-  });
+  // leaderbutton.addEventListener("click", () => {
+  //   board.classList.toggle("hidden");
+  //   game.classList.toggle("hidden");
+  // });
 }
 

@@ -4,12 +4,12 @@ import { createHTMLElement } from "./html.js";
 
 
 // const skins = ["1","2","4","8","16","32","64","128","256","512","1024",];
-const skins = ["🐭","🐹","🐱","🐶","🐻","🐯","🦁","🐼","🐸","🐲",]
+export const skins = ["🐭","🐹","🐱","🐶","🐻","🐯","🦁","🐼","🐸","🐲",]
 
 export function createGame(
   balance: Readable<number>,
-  // gameWorth: Readable<number>,
   gameState: Readable<number[]>,
+  highscore: Writable<number[]>,
   sell: () => void,
   red: () => void,
   green: ()=> void,
@@ -19,7 +19,7 @@ export function createGame(
   let game = createHTMLElement("div", { id: "game" });
 
 
-  createHTMLElement("h2", {parentElement:game}, "Panda Farm");
+  // createHTMLElement("h2", {parentElement:game}, "Panda Farm");
 
   const balanceElement = createHTMLElement("p", {parentElement: game});
   balance.subscribe(value => {
@@ -45,6 +45,11 @@ export function createGame(
 
 
   const highscoreElement = createHTMLElement("p", {parentElement: game}, "Highscore: 0$");
+  highscore.subscribe(value => {
+    highscoreElement.textContent = `Highscore: ${
+      value.reduce((acc, curr) => acc + skins[curr], "")
+    }`
+  })
 
   
 
@@ -66,6 +71,10 @@ export function createGame(
     id:"sellbutton",
     parentElement: game
   }, "Sell");
+
+  gameState.subscribe(value => {
+    sellbutton.textContent = `Collect ${value.reduce((acc, curr) => acc + 2 ** curr, 0)}$`;
+  })
 
 
   

@@ -9,7 +9,7 @@ pub struct Person {
     #[unique]
     name: String,
     highscore: u32,
-    highscore_rep: String,
+    highscore_state: Vec<u32>,
     bank: u32,
     game_state: Vec<u32>,
 }
@@ -63,7 +63,7 @@ pub fn create_person(ctx: &ReducerContext) -> Result<(), String> {
         id: ctx.sender,
         name: random_id,
         highscore: 0,
-        highscore_rep: "".to_string(),
+        highscore_state: vec![],
         bank: 99,
         game_state: vec![0],
     };
@@ -124,6 +124,11 @@ pub fn sell_game_worth(ctx: &ReducerContext) -> Result<(), String> {
 
     if game_worth == 0 && person.bank == 0 {
         return Err("No balance to play".to_string());
+    }
+
+    if game_worth > person.highscore{
+        person.highscore = game_worth;
+        person.highscore_state = person.game_state.clone();
     }
 
     person.bank += game_worth - 1;

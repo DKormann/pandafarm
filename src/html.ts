@@ -1,7 +1,7 @@
 
 
 export function createHTMLElement(tag: string,
-  attributes: Partial<Record<keyof HTMLElement, string|HTMLElement>> = {},
+  attributes: Partial<Record<keyof HTMLElement | "class", string|HTMLElement>> = {},
   content: string = ''): HTMLElement {
 const element = document.createElement(tag);
   
