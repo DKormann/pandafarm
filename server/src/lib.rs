@@ -118,6 +118,14 @@ impl Person{
 }
 
 #[spacetimedb::reducer]
+pub fn reset_bank(ctx: &ReducerContext) -> Result<(), String> {
+    let mut person = get_person(ctx)?;
+    if person.bank > 0 {return Ok(());}
+    person.bank = (ctx.random::<f32>().fract() * 10.).floor() as u32;
+    try_update_person(ctx, person)
+}
+
+#[spacetimedb::reducer]
 pub fn sell_game_worth(ctx: &ReducerContext) -> Result<(), String> {
     let mut person = get_person(ctx)?;
     let game_worth = person.game_worth();

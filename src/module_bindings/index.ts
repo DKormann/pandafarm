@@ -42,6 +42,8 @@ import { PlayGreen } from "./play_green_reducer.ts";
 export { PlayGreen };
 import { PlayRed } from "./play_red_reducer.ts";
 export { PlayRed };
+import { ResetBank } from "./reset_bank_reducer.ts";
+export { ResetBank };
 import { SellGameWorth } from "./sell_game_worth_reducer.ts";
 export { SellGameWorth };
 import { SetPersonName } from "./set_person_name_reducer.ts";
@@ -93,6 +95,10 @@ const REMOTE_MODULE = {
       reducerName: "play_red",
       argsType: PlayRed.getTypeScriptAlgebraicType(),
     },
+    reset_bank: {
+      reducerName: "reset_bank",
+      argsType: ResetBank.getTypeScriptAlgebraicType(),
+    },
     sell_game_worth: {
       reducerName: "sell_game_worth",
       argsType: SellGameWorth.getTypeScriptAlgebraicType(),
@@ -133,6 +139,7 @@ export type Reducer = never
 | { name: "IdentityDisconnected", args: IdentityDisconnected }
 | { name: "PlayGreen", args: PlayGreen }
 | { name: "PlayRed", args: PlayRed }
+| { name: "ResetBank", args: ResetBank }
 | { name: "SellGameWorth", args: SellGameWorth }
 | { name: "SetPersonName", args: SetPersonName }
 ;
@@ -192,6 +199,18 @@ export class RemoteReducers {
     this.connection.offReducer("play_red", callback);
   }
 
+  resetBank() {
+    this.connection.callReducer("reset_bank", new Uint8Array(0), this.setCallReducerFlags.resetBankFlags);
+  }
+
+  onResetBank(callback: (ctx: ReducerEventContext) => void) {
+    this.connection.onReducer("reset_bank", callback);
+  }
+
+  removeOnResetBank(callback: (ctx: ReducerEventContext) => void) {
+    this.connection.offReducer("reset_bank", callback);
+  }
+
   sellGameWorth() {
     this.connection.callReducer("sell_game_worth", new Uint8Array(0), this.setCallReducerFlags.sellGameWorthFlags);
   }
@@ -236,6 +255,11 @@ export class SetReducerFlags {
   playRedFlags: CallReducerFlags = 'FullUpdate';
   playRed(flags: CallReducerFlags) {
     this.playRedFlags = flags;
+  }
+
+  resetBankFlags: CallReducerFlags = 'FullUpdate';
+  resetBank(flags: CallReducerFlags) {
+    this.resetBankFlags = flags;
   }
 
   sellGameWorthFlags: CallReducerFlags = 'FullUpdate';
