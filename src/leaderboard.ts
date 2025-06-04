@@ -11,14 +11,14 @@ export function createLeaderboard(myname:Writable<string>, setName: (name :strin
   
   const leaderboard = createHTMLElement("div", {class: "leaderboard"});
 
-  const nametag = createHTMLElement("h3", {}, 'Your name: ')
+  const nametag = createHTMLElement("h3", {}, 'Change your name, currently: ')
   const nameelement = createHTMLElement("span", {}, myname.get());
   nameelement.style.textDecoration = "underline";
   nametag.appendChild(nameelement);
 
   leaderboard.appendChild(nametag)
   nametag.addEventListener("click", () => {
-    const result = window.prompt("Change your name, currently:", myname.get())?.trim()
+    const result = window.prompt("Your name:", myname.get())?.trim()
     if (result && result.length > 0) {
       setName(result)
     }
