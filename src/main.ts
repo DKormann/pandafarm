@@ -27,16 +27,18 @@ const log = console.log
 
 function updateGame(conn: DbConnection | SubscriptionEventContext){
 
+  const query = `SELECT * FROM person WHERE id == '${userId.get()}'`
   conn.subscriptionBuilder()
   .onApplied((ctx: SubscriptionEventContext) => {
     for (let person of ctx.db.person.iter()) {
-      log("Person:", person.name, person.bank, person.gameState)
+      log("Person:", person.name, person.bank, person.gameState, person.id)
+      if (person.id.toHexString() != userId.get()) continue;
       bank.set(person.bank);
       gameState.set(person.gameState);
       highscore.set(person.highscoreState);
     }
   })
-  .subscribe(`SELECT * FROM person WHERE id = '${userId.get()}'`)
+  .subscribe(query)
 }
 let competition = new Writable<Person[]>([]);
 
@@ -45,6 +47,7 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
   .onApplied((ctx: SubscriptionEventContext) => {
 
     competition.set(Array.from(ctx.db.person.iter()))
+
     log(competition.get())
     log("Competition updated", competition.get());
 
