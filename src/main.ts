@@ -59,16 +59,17 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
 }
 
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
-
-
-    bank.subscribe((value) => {
+  
+  start_game(conn);
+  
+  bank.subscribe((value) => {
     if (value == 0){
-      let plead = prompt("You are out of money! You can plead for some spare change tho")
-      if (plead && plead.length > 0) {
-        conn.reducers.resetBank();
-      }
+    let plead = prompt("You are out of money! You can plead for some spare change tho")
+    if (plead && plead.length > 0) {
+      conn.reducers.resetBank();
     }
-  })
+  }
+})
 
 
   waiter.remove();  
@@ -136,7 +137,7 @@ DbConnection.builder()
     .build()
 
 
-start_game(conn);
+
 
 
 
