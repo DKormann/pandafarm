@@ -46,11 +46,16 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
   conn.subscriptionBuilder()
   .onApplied((ctx: SubscriptionEventContext) => {
 
+    log("Competition updated", ctx)
+
     competition.set(Array.from(ctx.db.person.iter()))
 
     log(competition.get())
     log("Competition updated", competition.get());
 
+  })
+  .onError((ctx: ErrorContext) => {
+    log("Error in competition subscription", ctx.event);
   })
   .subscribe(`SELECT * FROM person WHERE highscore > 0 `)
 }
