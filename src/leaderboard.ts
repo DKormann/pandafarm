@@ -18,7 +18,7 @@ export function createLeaderboard(myname:Writable<string>, setName: (name :strin
 
   leaderboard.appendChild(nametag)
   nametag.addEventListener("click", () => {
-    const result = window.prompt("Change your name", myname.get())?.trim()
+    const result = window.prompt("Change your name, currently:", myname.get())?.trim()
     if (result && result.length > 0) {
       setName(result)
     }
@@ -34,7 +34,7 @@ export function createLeaderboard(myname:Writable<string>, setName: (name :strin
     list.innerHTML = "";
     entries.sort((a, b) => b.highscore - a.highscore).slice(0, 100);;
     for (const [index, entry] of entries.entries()) {
-      const listItem = createHTMLElement("p", {class:"leaderitem"}, `${index+1}. ${entry.name.slice(0,20)}: ${entry.highscoreState.reduce((acc:string, curr:number) => acc + skins[curr], "")}`);
+      const listItem = createHTMLElement("p", {class:"leaderitem"}, `${index+1}. ${entry.name.slice(0,20)}: ${entry.highscore}$ : ${entry.highscoreState.reduce((acc:string, curr:number) => acc + skins[curr], "")}`);
 
       list.appendChild(listItem);
     }

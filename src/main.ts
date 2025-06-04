@@ -31,12 +31,14 @@ function updateGame(conn: DbConnection | SubscriptionEventContext){
   conn.subscriptionBuilder()
   .onApplied((ctx: SubscriptionEventContext) => {
     for (let person of ctx.db.person.iter()) {
-      log("Person:", person.name, person.bank, person.gameState, person.id)
       if (person.id.toHexString() != userId.get()) continue;
       bank.set(person.bank);
       gameState.set(person.gameState);
       highscore.set(person.highscoreState);
     }
+  })
+  .onError((ctx: ErrorContext) => {
+    log("Error in game subscription", ctx.event);
   })
   .subscribe(query)
 }
@@ -46,11 +48,7 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
   conn.subscriptionBuilder()
   .onApplied((ctx: SubscriptionEventContext) => {
 
-    log("Competition updated", ctx)
-
     competition.set(Array.from(ctx.db.person.iter()))
-
-    log(competition.get())
     log("Competition updated", competition.get());
 
   })
