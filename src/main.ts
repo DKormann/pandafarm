@@ -114,9 +114,6 @@ start_game(conn);
 
 function start_game(conn:DbConnection){
 
-  // const leaderbutton = createHTMLElement("h3", {}, "Leaderboard");
-
-  // document.body.appendChild(leaderbutton);
 
   let username = new Stored <string> ("username", "Unknown");
 
@@ -128,7 +125,6 @@ function start_game(conn:DbConnection){
   let board = createLeaderboard(username, competition);
 
 
-  document.body.appendChild(board);
 
 
   const game = createGame(
@@ -142,11 +138,8 @@ function start_game(conn:DbConnection){
   );
 
   document.body.appendChild(game);
+  document.body.appendChild(board);
 
 
-  // leaderbutton.addEventListener("click", () => {
-  //   board.classList.toggle("hidden");
-  //   game.classList.toggle("hidden");
-  // });
 }
 
