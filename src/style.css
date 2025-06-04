@@ -1,0 +1,112 @@
+body{
+  background-color: #333;
+  color: #fff;
+
+  margin:0;
+  padding:0;
+
+  text-align: center;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  user-select: none;
+}
+
+
+@media (prefers-color-scheme: light) {
+  body {
+    background-color: #fff;
+    color: #333;
+  }
+}
+
+#game{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+}
+
+h1{
+  font-size: 2.5em;
+  margin: 0.5em 0;
+}
+
+/* .bigbutton{
+  background-color: rgb(187, 65, 0);
+  font-size: 1.2em;
+  border-radius: 1em;
+  color:white;
+  font-weight: bold;
+  border:unset;
+  padding: 1em;
+  margin: 1em;
+  margin-top: 2em;
+  user-select: none;
+  transition: 0.1s;
+} */
+
+.bigbutton:active{
+  background-color: rgb(255, 100, 0);
+  transform: scale(0.95);
+}
+
+#button2{
+  background-color: green;
+}
+
+#sellbutton{
+  background-color: grey;;
+}
+
+#button2:active{
+  background-color: rgb(0, 200, 0);
+  transform: scale(0.95);
+}
+
+#animals{
+  margin:auto;
+  margin-top: 1em;
+  font-size: 4em;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 70vw;
+  height: 2em;
+}
+
+.animal{
+  transition: 0.2s;
+  font-size: 0em;
+  display: inline;
+}
+
+.animal.active{
+  transition: 0.2s;
+  font-size: 1.2em;
+}
+
+.animal.dead{
+  transition: .5s;
+  font-size: 0;
+}
+
+.animal.active.wiggle{
+  animation: pop 300ms ease;
+}
+.animal.active.wiggle2{
+  animation: pop 300ms ease;
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+
+.hidden{
+  display: none;
+}
+
+ul{
+  text-align: left;
+}
