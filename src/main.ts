@@ -61,6 +61,16 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
 
+    bank.subscribe((value) => {
+    if (value == 0){
+      let plead = prompt("You are out of money! You can plead for some spare change tho")
+      if (plead && plead.length > 0) {
+        conn.reducers.resetBank();
+      }
+    }
+  })
+
+
   waiter.remove();  
   dbtoken.set(token)
   userId.set(identity.toHexString());
@@ -135,14 +145,6 @@ function start_game(conn:DbConnection){
 
   let board = createLeaderboard(username, name=>setPersonName(conn, name), competition);
 
-  bank.subscribe((value) => {
-    if (value == 0){
-      let plead = prompt("You are out of money! You plead for some spare change tho")
-      if (plead && plead.length > 0) {
-        conn.reducers.resetBank();
-      }
-    }
-  })
 
   const game = createGame(
     bank,
