@@ -20,7 +20,7 @@ let bank = new Stored<number>("bank", 99);
 let gameState = new Stored<number[]>("gameState", []);
 const highscore = new Stored<number[]>(dbname + servermode + "-highscore", [0,0,0,0,0,0,0,0,0,0]);
 
-let username = new Stored <string> ("username", "Unknown");
+let username = new Stored <string> ("username", "Unknown2");
 
 
 const log = console.log
