@@ -7,7 +7,7 @@ import { Person } from "./module_bindings";
 import { Writable, Readable } from "./store";
 import { skins } from "./online_game";
 
-export function createLeaderboard(myname:Writable<string> , entries: Readable<Person[]>) {
+export function createLeaderboard(myname:Writable<string>, setName: (name :string)=>void , entries: Readable<Person[]>) {
   
   const leaderboard = createHTMLElement("div", {class: "leaderboard"});
 
@@ -20,7 +20,7 @@ export function createLeaderboard(myname:Writable<string> , entries: Readable<Pe
   nametag.addEventListener("click", () => {
     const result = window.prompt("Change your name", myname.get())?.trim()
     if (result && result.length > 0) {
-      myname.set(result);
+      setName(result)
     }
   });
 

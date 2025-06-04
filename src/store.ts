@@ -13,10 +13,10 @@ export class Writable <T> {
   set(newValue: T): void {
     if (newValue === this.value) return
 
-    this.value = newValue
     for (const listener of this.listeners) {
       listener(newValue)
     }
+    this.value = newValue
   }
 
   update(updater: (value: T) => T): void {

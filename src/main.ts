@@ -20,9 +20,10 @@ let bank = new Stored<number>("bank", 99);
 let gameState = new Stored<number[]>("gameState", []);
 const highscore = new Stored<number[]>(dbname + servermode + "-highscore", [0,0,0,0,0,0,0,0,0,0]);
 
+let username = new Stored <string> ("username", "Unknown");
+
 
 const log = console.log
-
 
 function updateGame(conn: DbConnection | SubscriptionEventContext){
 
@@ -72,14 +73,13 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
   conn.reducers.onSellGameWorth(updateGame)
 
   conn.reducers.onSetPersonName((ctx: ReducerEventContext)=>{
-    console.log("onSetPersonName", ctx.event.status)
-    if (ctx.event.status.tag == "Failed") {
-      alert("Failed to set name:" + ctx.event.status.value)
-    };
+    // console.log("onSetPersonName", ctx.event.status)
+    // if (ctx.event.status.tag == "Failed") {
+    //   alert("Failed to set name:" + ctx.event.status.value)
+    // };
   })
 
   updateCompetition(conn);
-
 
   conn.reducers.createPerson()
 
@@ -87,7 +87,19 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 }
 
 function setPersonName( conn: DbConnection, name: string) {
+  let res = new Promise<void>((resolve, reject) => {
+    conn.reducers.onSetPersonName((ctx: ReducerEventContext) => {
+      if (ctx.event.status.tag == "Failed") {
+        alert("Failed to set name: " + ctx.event.status.value);
+        reject(ctx.event.status.value);
+      }else if (ctx.event.status.tag == "Committed"){
+        username.set(name);
+        resolve();
+      }
+    })
+  })
   conn.reducers.setPersonName(name)
+  return res
 }
 
 const waiter = createHTMLElement("h1", {}, "Waiting for connection...");
@@ -115,17 +127,8 @@ start_game(conn);
 function start_game(conn:DbConnection){
 
 
-  let username = new Stored <string> ("username", "Unknown");
 
-
-  username.subscribeLater((name) => {
-    setPersonName(conn,name);
-  })
-
-  let board = createLeaderboard(username, competition);
-
-
-
+  let board = createLeaderboard(username, name=>setPersonName(conn, name), competition);
 
   const game = createGame(
     bank,
