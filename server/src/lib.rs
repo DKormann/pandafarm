@@ -121,7 +121,7 @@ impl Person{
 pub fn reset_bank(ctx: &ReducerContext) -> Result<(), String> {
     let mut person = get_person(ctx)?;
     if person.bank > 0 {return Ok(());}
-    person.bank = (ctx.random::<f32>().fract() * 10.).floor() as u32 + 1;
+    person.bank = (ctx.random::<f32>().fract() * 100.).floor() as u32 + 1;
     person.game_state = vec![0];
     try_update_person(ctx, person)
 }

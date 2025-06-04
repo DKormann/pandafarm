@@ -11,6 +11,8 @@ export function createLeaderboard(myname:Writable<string>, setName: (name :strin
   
   const leaderboard = createHTMLElement("div", {class: "leaderboard"});
 
+  createHTMLElement("h2", {parentElement:leaderboard}, "Leaderboard")
+
   const nametag = createHTMLElement("h3", {}, 'Change your name, currently: ')
   const nameelement = createHTMLElement("span", {}, myname.get());
   nameelement.style.textDecoration = "underline";

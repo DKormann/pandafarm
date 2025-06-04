@@ -1,4 +1,5 @@
 
+
 import { Writable, Readable } from "./store.js";
 import { createHTMLElement } from "./html.js";
 
@@ -19,7 +20,7 @@ export function createGame(
   let game = createHTMLElement("div", { id: "game" });
 
 
-  // createHTMLElement("h2", {parentElement:game}, "Panda Farm");
+  createHTMLElement("h2", {parentElement:game}, "Panda Farm");
 
   const balanceElement = createHTMLElement("p", {parentElement: game});
   balance.subscribe(value => {
