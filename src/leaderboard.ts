@@ -6,7 +6,7 @@ import { Writable } from "./store";
 
 export function createLeaderboard(myname:Writable<string> , entries: { name: string, score: String }[]) {
   
-  const leaderboard = createHTMLElement("div", {class: "leaderboard"});
+  const leaderboard = createHTMLElement("div", {classList: "leaderboard"});
 
 
   const nametag = createHTMLElement("h3", {}, `Your name: ${myname.get()}`)
