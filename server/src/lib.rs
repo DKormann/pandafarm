@@ -1,15 +1,15 @@
 
 use std::vec;
 
-use spacetimedb::{Identity, ReducerContext, Table, table, reducer};
+use spacetimedb::{rand::Rng, reducer, table, Identity, ReducerContext, Table};
 
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
 pub enum AnimalActionType{
-  Nothing,
   Dublicate,
   Levelup,
   Dead,
+  Stay,
 }
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
@@ -170,12 +170,10 @@ pub fn sell_game_worth(ctx: &ReducerContext) -> Result<(), String> {
 
 
 fn apply_animal_actions(ctx: &ReducerContext, mut player: Person, actions: Vec<AnimalAction>)-> Result<(), String> {
+  log::info!("Applying animal actions for person: {}", player.name);
   let mut newstate = vec![];
   for AnimalAction{animal, action} in &actions{
     match action{
-      AnimalActionType::Nothing => {
-        newstate.push(*animal);
-      }
       AnimalActionType::Dublicate => {
         newstate.push(*animal);
         newstate.push(*animal);
@@ -188,46 +186,70 @@ fn apply_animal_actions(ctx: &ReducerContext, mut player: Person, actions: Vec<A
           newstate.push(*animal);
         }
       }
+      AnimalActionType::Stay => {
+        newstate.push(*animal);
+      }
       _ => {}
     }
   }
+  
+  if newstate.len() == 0{
+    if player.bank>0 {
+      player.bank -= 1;
+      newstate.push(0);
+    }
+  }
   player.game_state = newstate;
+  
   player.last_action_result = actions;
+
   try_update_person(ctx, player)
 }
+
+// use rand::{prelude::*, Rng};
+
 
 
 #[reducer]
 pub fn play_red(ctx: &ReducerContext) -> Result<(), String> {
-  let mut person = get_person(ctx)?;
+  let person = get_person(ctx)?;
+  
+  let mut seed = ctx.rng();
+
   let actions: Vec<AnimalAction> = person.game_state.iter().map(|x| {
+    let rng = seed.gen_range(0..3);
     AnimalAction{
       animal: *x,
-      action: AnimalActionType::Dead
+      action: if rng == 0 {
+        AnimalActionType::Levelup
+      }else if rng == 1{
+        AnimalActionType::Stay
+      }else{
+        AnimalActionType::Dead
+      }
     }
   }).collect();
-
   apply_animal_actions(ctx, person, actions)
 }
 
 #[reducer]
 pub fn play_green(ctx: &ReducerContext) -> Result<(), String> {
-  let mut person = get_person(ctx)?;
-  let mut newstate = vec![];
-  for x in person.game_state.iter() {
-    if ctx.random() {
-      newstate.push(*x);
-      newstate.push(*x);
+  let person = get_person(ctx)?;
+  let mut seed = ctx.rng();
+  let actions: Vec<AnimalAction> = person.game_state.iter().map(|x| {
+    let rng : u8 = seed.gen_range(0..3);
+    AnimalAction{
+      animal: *x,
+      action: if rng == 0 {
+        AnimalActionType::Dublicate
+      }else if rng == 1{
+        AnimalActionType::Stay
+      }else{
+        AnimalActionType::Dead
+      }
+    
     }
-  };
-  if newstate.is_empty() {
-    if person.bank > 0{
-      person.bank -= 1;
-      newstate.push(0);
-    }
-  };
-
-  person.game_state = newstate;
-  try_update_person(ctx, person)
+  }).collect();
+  apply_animal_actions(ctx, person, actions)
 }
       

@@ -56,6 +56,10 @@ import { PersonTableHandle } from "./person_table.ts";
 export { PersonTableHandle };
 
 // Import and reexport all types
+import { AnimalAction } from "./animal_action_type.ts";
+export { AnimalAction };
+import { AnimalActionType } from "./animal_action_type_type.ts";
+export { AnimalActionType };
 import { GameState } from "./game_state_type.ts";
 export { GameState };
 import { Person } from "./person_type.ts";

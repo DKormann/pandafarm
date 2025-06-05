@@ -30,6 +30,8 @@ import {
   Timestamp,
   deepEqual,
 } from "@clockworklabs/spacetimedb-sdk";
+import { AnimalAction as __AnimalAction } from "./animal_action_type";
+
 export type Person = {
   id: Identity,
   name: string,
@@ -37,6 +39,7 @@ export type Person = {
   highscoreState: number[],
   bank: number,
   gameState: number[],
+  lastActionResult: __AnimalAction[],
 };
 
 /**
@@ -55,6 +58,7 @@ export namespace Person {
       new ProductTypeElement("highscoreState", AlgebraicType.createArrayType(AlgebraicType.createU32Type())),
       new ProductTypeElement("bank", AlgebraicType.createU32Type()),
       new ProductTypeElement("gameState", AlgebraicType.createArrayType(AlgebraicType.createU32Type())),
+      new ProductTypeElement("lastActionResult", AlgebraicType.createArrayType(__AnimalAction.getTypeScriptAlgebraicType())),
     ]);
   }
 

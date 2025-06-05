@@ -3,27 +3,27 @@ import { Person } from "./module_bindings";
 import { Writable, Readable } from "./store";
 import { skins } from "./online_game";
 
-export function createLeaderboard(myname:Writable<string>, setName: (name :string)=>void , entries: Readable<Person[]>) {
+export function createLeaderboard(player:Readable<Person>, setName: (name :string)=>void , entries: Readable<Person[]>) {
   
   const leaderboard = createHTMLElement("div", {class: "leaderboard"});
 
   createHTMLElement("h2", {parentElement:leaderboard}, "Leaderboard")
 
   const nametag = createHTMLElement("h3", {}, 'Change your name, currently: ')
-  const nameelement = createHTMLElement("span", {}, myname.get());
+  const nameelement = createHTMLElement("span", {}, player.get().name);
   nameelement.style.textDecoration = "underline";
   nametag.appendChild(nameelement);
 
   leaderboard.appendChild(nametag)
   nametag.addEventListener("click", () => {
-    const result = window.prompt("Your name:", myname.get())?.trim()
+    const result = window.prompt("Your name:", player.get().name)?.trim()
     if (result && result.length > 0) {
       setName(result)
     }
   });
 
-  myname.subscribe((name) => {
-    nameelement.textContent = `${name}`;
+  player.subscribe(newval => {
+    nameelement.textContent = `${newval.name.slice(0,20)}`;
   });
 
 
