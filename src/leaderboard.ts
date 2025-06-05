@@ -1,5 +1,5 @@
 import { createHTMLElement } from "./html";
-import { Person } from "./module_bindings";
+import { Person } from "./module_bindings2";
 import { Writable, Readable } from "./store";
 import { skins } from "./online_game";
 

@@ -1,7 +1,7 @@
 
 import { Identity } from "@clockworklabs/spacetimedb-sdk"
 import { Readable, Stored, Writable } from "./store"
-import { AnimalAction, DbConnection,ErrorContext, EventContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings"
+import { AnimalAction, DbConnection,ErrorContext, EventContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings2"
 
 
 // import {create_game} from "./game"

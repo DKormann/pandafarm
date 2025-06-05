@@ -32,37 +32,37 @@ import {
 } from "@clockworklabs/spacetimedb-sdk";
 
 // Import and reexport all reducer arg types
-import { CreatePerson } from "./create_person_reducer.ts";
+import { CreatePerson } from "./create_person_reducer.js";
 export { CreatePerson };
-import { IdentityConnected } from "./identity_connected_reducer.ts";
+import { IdentityConnected } from "./identity_connected_reducer.js";
 export { IdentityConnected };
-import { IdentityDisconnected } from "./identity_disconnected_reducer.ts";
+import { IdentityDisconnected } from "./identity_disconnected_reducer.js";
 export { IdentityDisconnected };
-import { PlayGreen } from "./play_green_reducer.ts";
+import { PlayGreen } from "./play_green_reducer.js";
 export { PlayGreen };
-import { PlayRed } from "./play_red_reducer.ts";
+import { PlayRed } from "./play_red_reducer.js";
 export { PlayRed };
-import { ResetBank } from "./reset_bank_reducer.ts";
+import { ResetBank } from "./reset_bank_reducer.js";
 export { ResetBank };
-import { SellGameWorth } from "./sell_game_worth_reducer.ts";
+import { SellGameWorth } from "./sell_game_worth_reducer.js";
 export { SellGameWorth };
-import { SetPersonName } from "./set_person_name_reducer.ts";
+import { SetPersonName } from "./set_person_name_reducer.js";
 export { SetPersonName };
 
 // Import and reexport all table handle types
-import { GameStateTableHandle } from "./game_state_table.ts";
+import { GameStateTableHandle } from "./game_state_table.js";
 export { GameStateTableHandle };
-import { PersonTableHandle } from "./person_table.ts";
+import { PersonTableHandle } from "./person_table.js";
 export { PersonTableHandle };
 
 // Import and reexport all types
-import { AnimalAction } from "./animal_action_type.ts";
+import { AnimalAction } from "./animal_action_type.js";
 export { AnimalAction };
-import { AnimalActionType } from "./animal_action_type_type.ts";
+import { AnimalActionType } from "./animal_action_type_type.js";
 export { AnimalActionType };
-import { GameState } from "./game_state_type.ts";
+import { GameState } from "./game_state_type.js";
 export { GameState };
-import { Person } from "./person_type.ts";
+import { Person } from "./person_type.js";
 export { Person };
 
 const REMOTE_MODULE = {

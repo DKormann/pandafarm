@@ -2,8 +2,8 @@
 
 import { Writable, Readable } from "./store.js";
 import { createHTMLElement } from "./html.js";
-import { Person } from "./module_bindings/person_type.js";
-import { AnimalAction } from "./module_bindings/animal_action_type.js";
+import { Person } from "./module_bindings2/person_type.js";
+import { AnimalAction } from "./module_bindings2/animal_action_type.js";
 
 
 // const skins = ["1","2","4","8","16","32","64","128","256","512","1024",];
