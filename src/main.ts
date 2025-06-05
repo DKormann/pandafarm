@@ -11,7 +11,7 @@ import { createLeaderboard } from "./leaderboard"
 
 export {}
 
-const dbname = "pandadb"
+const dbname = "pandadb2"
 const servermode : 'local'|'remote'  = 'local';
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 const userId = new Stored<string>(dbname + servermode + "-userId", "defaultUserId");
