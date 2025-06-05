@@ -1,7 +1,7 @@
 
 import { Identity } from "@clockworklabs/spacetimedb-sdk"
-import { Stored, Writable } from "./store"
-import { DbConnection,ErrorContext, EventContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings"
+import { Readable, Stored, Writable } from "./store"
+import { AnimalAction, DbConnection,ErrorContext, EventContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings"
 
 
 // import {create_game} from "./game"
@@ -9,41 +9,42 @@ import { createGame } from "./online_game"
 import { createHTMLElement } from "./html"
 import { createLeaderboard } from "./leaderboard"
 
-
-
 export {}
 
 const dbname = "pandadb"
-const servermode : 'local'|'remote'  = 'remote';
+const servermode : 'local'|'remote'  = 'local';
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 const userId = new Stored<string>(dbname + servermode + "-userId", "defaultUserId");
-
-let bank = new Stored<number>("bank", 99);
-let gameState = new Stored<number[]>("gameState", []);
-const highscore = new Stored<number[]>(dbname + servermode + "-highscore", [0,0,0,0,0,0,0,0,0,0]);
-
-let username = new Stored <string> ("username", "Unknown");
-
+const lastActionResult = new Stored<AnimalAction[]>(dbname + servermode + "-lastActionResult", []);
 
 const log = console.log
 
-function updateGame(conn: DbConnection | SubscriptionEventContext){
+type ServerSession = {
+  conn: DbConnection,
+  player: Readable<Person>,
+}
 
-  const query = `SELECT * FROM person WHERE id == '${userId.get()}'`
+
+function requestPlayer(conn: DbConnection | SubscriptionEventContext, identity: Identity, callback: (person: Person) => void, fail : () => void) {
+  const query = `SELECT * FROM person WHERE id == '${identity.toHexString()}'`
   conn.subscriptionBuilder()
   .onApplied((ctx: SubscriptionEventContext) => {
-    for (let person of ctx.db.person.iter()) {
-      if (person.id.toHexString() != userId.get()) continue;
-      bank.set(person.bank);
-      gameState.set(person.gameState);
-      highscore.set(person.highscoreState);
+    const mypersons = Array.from(ctx.db.person.iter()).filter((p:Person)=>p.id.toHexString() == identity.toHexString())
+    if (mypersons.length == 0){
+      fail();
+    }else {
+      callback(mypersons[0]);
     }
   })
   .onError((ctx: ErrorContext) => {
-    log("Error in game subscription", ctx.event);
+    log("Error in player subscription", ctx.event);
+    fail();
   })
   .subscribe(query)
 }
+
+
+
 let competition = new Writable<Person[]>([]);
 
 function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
@@ -60,98 +61,85 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
   .subscribe(`SELECT * FROM person WHERE highscore > 0 `)
 }
 
+
+
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
+
+  log("Connected to server")
   
-  start_game(conn);
-  
-  bank.subscribe((value) => {
-    if (value == 0){
-    let plead = prompt("You are out of money! You can plead for some spare change tho")
-    if (plead && plead.length > 0) {
-      conn.reducers.resetBank();
+  const startSession = (player: Person) => {
+    const writable = new Writable<Person>(player)
+
+    const updatePlayer = (ctx: ReducerEventContext) => {
+      requestPlayer(ctx, identity, p=>writable.set(p), ()=> {})
     }
+
+    conn.reducers.onPlayGreen(updatePlayer)
+    conn.reducers.onPlayRed(updatePlayer)
+    conn.reducers.onSellGameWorth(updatePlayer)
+    conn.reducers.onSetPersonName(updatePlayer)
+
+    const session: ServerSession = {
+      conn: conn,
+      player: writable
+    }
+    waiter.remove();
+
+
+
+    startGame(session)
+
   }
-})
-
-
-  waiter.remove();  
-  dbtoken.set(token)
-  userId.set(identity.toHexString());
-
-  updateGame(conn);
   
-  conn.reducers.onCreatePerson((ctx: ReducerEventContext)=>{
-    updateGame(ctx);
-  })
-
-  conn.reducers.onPlayRed((c=>{
-    updateGame(c);
-  }))
-
-  conn.reducers.onPlayGreen(updateGame)
-  conn.reducers.onSellGameWorth(updateGame)
-  conn.reducers.onResetBank(updateGame)
-  conn.reducers.onSetPersonName(updateGame)
-
-  updateCompetition(conn);
-
-  conn.reducers.createPerson()
-
-
-}
-
-function setPersonName( conn: DbConnection, name: string) {
-  let res = new Promise<void>((resolve, reject) => {
-    conn.reducers.onSetPersonName((ctx: ReducerEventContext) => {
-      if (ctx.event.status.tag == "Failed") {
-        alert("Failed to set name: " + ctx.event.status.value);
-        reject(ctx.event.status.value);
-      }else if (ctx.event.status.tag == "Committed"){
-        username.set(name);
-        resolve();
-      }
+  requestPlayer(conn, identity,
+    startSession,
+    ()=>{
+      conn.reducers.onCreatePerson((ctx: ReducerEventContext) => {
+        requestPlayer(conn, identity, startSession, () => {
+          log("Failed to create player, retrying...");
+          setTimeout(() => ConnectServer(), 1000);
+        });
     })
-  })
-  conn.reducers.setPersonName(name)
-  return res
+    }
+  );
+
 }
 
 const waiter = createHTMLElement("h1", {}, "Waiting for connection...");
 document.body.appendChild(waiter);
 
 
+const serverurl = (servermode == 'local') ? "ws://localhost:3000" : "wss://maincloud.spacetimedb.com";
 
-const conn =
-DbConnection.builder()
-    // @ts-ignore
-    .withUri((servermode == 'local')?"ws://localhost:3000" : "wss://maincloud.spacetimedb.com")
-    .withModuleName(dbname)
-    .withToken(dbtoken.get())
-    .onConnect(onConnect)
-    .onConnectError((ctx: ErrorContext, error: Error) =>{
-      log("onConnectError", error)
-    })
-    .build()
+function ConnectServer(){
 
+  return DbConnection.builder()
+  // @ts-ignore
+  .withUri(serverurl)
+  .withModuleName(dbname)
+  .withToken(dbtoken.get())
+  .onConnect(onConnect)
+  .onConnectError((ctx: ErrorContext, error: Error) =>{
+    log("onConnectError", error)
+  })
+  .build()
+  
+}
 
+ConnectServer()
 
+function startGame(session: ServerSession){
+  log(session)
 
+  let board = createLeaderboard(session.player, session.conn.reducers.setPersonName, competition);
 
-
-function start_game(conn:DbConnection){
-
-
-  let board = createLeaderboard(username, name=>setPersonName(conn, name), competition);
 
 
   const game = createGame(
-    bank,
-    gameState,
-    highscore,
-    
-    ()=> conn.reducers.sellGameWorth(),
-    ()=> conn.reducers.playRed(),
-    ()=> conn.reducers.playGreen(),
+    session.player,
+    ()=>session.conn.reducers.sellGameWorth(),
+    ()=>session.conn.reducers.playRed(),
+    ()=>session.conn.reducers.playGreen(),
   );
 
   document.body.appendChild(game);
