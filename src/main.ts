@@ -12,7 +12,7 @@ import { createLeaderboard } from "./leaderboard"
 export {}
 
 const dbname = "pandadb2"
-const servermode : 'local'|'remote'  = 'local';
+const servermode : 'local'|'remote'  = 'remote';
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 const userId = new Stored<string>(dbname + servermode + "-userId", "defaultUserId");
 const lastActionResult = new Stored<AnimalAction[]>(dbname + servermode + "-lastActionResult", []);
@@ -112,7 +112,7 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 const waiter = createHTMLElement("h1", {}, "Waiting for connection...");
 document.body.appendChild(waiter);
 
-
+// @ts-ignore
 const serverurl = (servermode == 'local') ? "ws://localhost:3000" : "wss://maincloud.spacetimedb.com";
 
 function ConnectServer(){
