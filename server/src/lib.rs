@@ -1,7 +1,7 @@
 
 use std::vec;
 
-use spacetimedb::{reducer, table, Identity, ReducerContext, Table};
+use spacetimedb::{rand::Rng, reducer, table, Identity, ReducerContext, Table};
 
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
@@ -9,6 +9,7 @@ pub enum AnimalActionType{
   Dublicate,
   Levelup,
   Dead,
+  Stay,
 }
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
@@ -185,6 +186,9 @@ fn apply_animal_actions(ctx: &ReducerContext, mut player: Person, actions: Vec<A
           newstate.push(*animal);
         }
       }
+      AnimalActionType::Stay => {
+        newstate.push(*animal);
+      }
       _ => {}
     }
   }
@@ -202,16 +206,24 @@ fn apply_animal_actions(ctx: &ReducerContext, mut player: Person, actions: Vec<A
   try_update_person(ctx, player)
 }
 
+// use rand::{prelude::*, Rng};
+
+
 
 #[reducer]
 pub fn play_red(ctx: &ReducerContext) -> Result<(), String> {
   let person = get_person(ctx)?;
-  log::info!("Playing red for person: {}", person.name);
+  
+  let mut seed = ctx.rng();
+
   let actions: Vec<AnimalAction> = person.game_state.iter().map(|x| {
+    let rng = seed.gen_range(0..3);
     AnimalAction{
       animal: *x,
-      action: if ctx.random(){
+      action: if rng == 0 {
         AnimalActionType::Levelup
+      }else if rng == 1{
+        AnimalActionType::Stay
       }else{
         AnimalActionType::Dead
       }
@@ -222,16 +234,20 @@ pub fn play_red(ctx: &ReducerContext) -> Result<(), String> {
 
 #[reducer]
 pub fn play_green(ctx: &ReducerContext) -> Result<(), String> {
-  log::info!("Playing green");
   let person = get_person(ctx)?;
+  let mut seed = ctx.rng();
   let actions: Vec<AnimalAction> = person.game_state.iter().map(|x| {
+    let rng : u8 = seed.gen_range(0..3);
     AnimalAction{
       animal: *x,
-      action: if ctx.random(){
+      action: if rng == 0 {
         AnimalActionType::Dublicate
+      }else if rng == 1{
+        AnimalActionType::Stay
       }else{
         AnimalActionType::Dead
       }
+    
     }
   }).collect();
   apply_animal_actions(ctx, person, actions)

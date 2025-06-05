@@ -67,6 +67,8 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
   log("Connected to server")
   
+  updateCompetition(conn);
+
   const startSession = (player: Person) => {
     const writable = new Writable<Person>(player)
 
@@ -78,6 +80,7 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
     conn.reducers.onPlayRed(updatePlayer)
     conn.reducers.onSellGameWorth(updatePlayer)
     conn.reducers.onSetPersonName(updatePlayer)
+    conn.reducers.onResetBank(updatePlayer)
 
     const session: ServerSession = {
       conn: conn,
@@ -99,7 +102,8 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
           log("Failed to create player, retrying...");
           setTimeout(() => ConnectServer(), 1000);
         });
-    })
+      })
+      conn.reducers.createPerson()
     }
   );
 
@@ -129,9 +133,26 @@ function ConnectServer(){
 ConnectServer()
 
 function startGame(session: ServerSession){
+
+
+
   log(session)
 
-  let board = createLeaderboard(session.player, session.conn.reducers.setPersonName, competition);
+  session.player.subscribe(p=>{
+
+    if (p.highscore != session.player.get().highscore){
+      log("Highscore updated", p.highscore);
+      updateCompetition(session.conn);
+    }
+    if (p.bank == 0){
+      let pr = window.prompt("You have no money left, say please to get more");
+      if (pr && pr.length >0){
+        session.conn.reducers.resetBank();
+      }
+    }
+  })
+
+  let board = createLeaderboard(session.player, name=>session.conn.reducers.setPersonName(name), competition);
 
 
 

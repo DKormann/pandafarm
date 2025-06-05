@@ -38,6 +38,7 @@ export namespace AnimalActionType {
   export type Dublicate = { tag: "Dublicate" };
   export type Levelup = { tag: "Levelup" };
   export type Dead = { tag: "Dead" };
+  export type Stay = { tag: "Stay" };
 
   // Helper functions for constructing each variant of the tagged union.
   // ```
@@ -48,12 +49,14 @@ export namespace AnimalActionType {
   export const Dublicate = { tag: "Dublicate" };
   export const Levelup = { tag: "Levelup" };
   export const Dead = { tag: "Dead" };
+  export const Stay = { tag: "Stay" };
 
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
       new SumTypeVariant("Dublicate", AlgebraicType.createProductType([])),
       new SumTypeVariant("Levelup", AlgebraicType.createProductType([])),
       new SumTypeVariant("Dead", AlgebraicType.createProductType([])),
+      new SumTypeVariant("Stay", AlgebraicType.createProductType([])),
     ]);
   }
 
@@ -68,7 +71,7 @@ export namespace AnimalActionType {
 }
 
 // The tagged union or sum type for the algebraic type `AnimalActionType`.
-export type AnimalActionType = AnimalActionType.Dublicate | AnimalActionType.Levelup | AnimalActionType.Dead;
+export type AnimalActionType = AnimalActionType.Dublicate | AnimalActionType.Levelup | AnimalActionType.Dead | AnimalActionType.Stay;
 
 export default AnimalActionType;
 

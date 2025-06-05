@@ -75,20 +75,25 @@ h1{
 }
 
 .animal{
-  transition: 0.2s;
-  font-size: 0em;
+  transition: 0.5s;
+  font-size: .0em;
   display: inline;
 }
 
-.animal.active{
-  transition: 0.2s;
-  font-size: 1.2em;
+.animal.active.fresh, .animal.fresh{
+  transition: .0s;
+  font-size: 0.5em;
 }
 
-.animal.dead{
+.animal.active{
+  transition: .5s;
+  font-size: 1em;
+}
+
+/* .animal.dead{
   transition: .5s;
   font-size: 0;
-}
+} */
 
 .animal.active.wiggle{
   animation: pop 300ms ease;
@@ -108,7 +113,7 @@ h1{
 }
 
 div.leaderboard{
-  margin-top: 10em;;
+  margin-top: 10em;
   width: 100%;
 }
 

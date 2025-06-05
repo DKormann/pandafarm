@@ -23,7 +23,7 @@ export function createLeaderboard(player:Readable<Person>, setName: (name :strin
   });
 
   player.subscribe(newval => {
-    nameelement.textContent = `${newval.name}`;
+    nameelement.textContent = `${newval.name.slice(0,20)}`;
   });
 
 
