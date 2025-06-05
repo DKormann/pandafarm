@@ -69,6 +69,16 @@ pub fn identity_disconnected(_ctx: &ReducerContext) {
 
 
 #[reducer]
+pub fn migrate(ctx: &ReducerContext, p:Person) -> Result<(), String> {
+  log::info!("Migrating person with id: {}", p.id);
+  ctx.db.person().try_insert(p)
+    .map_err(|e| e.to_string())
+    .map(|_| ())
+}
+  
+
+
+#[reducer]
 pub fn create_person(ctx: &ReducerContext) -> Result<(), String> {
 
   log::info!("Creating person for identity: {}", ctx.sender.to_string());

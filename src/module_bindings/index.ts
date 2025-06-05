@@ -38,8 +38,6 @@ import { IdentityConnected } from "./identity_connected_reducer.ts";
 export { IdentityConnected };
 import { IdentityDisconnected } from "./identity_disconnected_reducer.ts";
 export { IdentityDisconnected };
-import { Migrate } from "./migrate_reducer.ts";
-export { Migrate };
 import { PlayGreen } from "./play_green_reducer.ts";
 export { PlayGreen };
 import { PlayRed } from "./play_red_reducer.ts";
@@ -58,10 +56,6 @@ import { PersonTableHandle } from "./person_table.ts";
 export { PersonTableHandle };
 
 // Import and reexport all types
-import { AnimalAction } from "./animal_action_type.ts";
-export { AnimalAction };
-import { AnimalActionType } from "./animal_action_type_type.ts";
-export { AnimalActionType };
 import { GameState } from "./game_state_type.ts";
 export { GameState };
 import { Person } from "./person_type.ts";
@@ -92,10 +86,6 @@ const REMOTE_MODULE = {
     identity_disconnected: {
       reducerName: "identity_disconnected",
       argsType: IdentityDisconnected.getTypeScriptAlgebraicType(),
-    },
-    migrate: {
-      reducerName: "migrate",
-      argsType: Migrate.getTypeScriptAlgebraicType(),
     },
     play_green: {
       reducerName: "play_green",
@@ -147,7 +137,6 @@ export type Reducer = never
 | { name: "CreatePerson", args: CreatePerson }
 | { name: "IdentityConnected", args: IdentityConnected }
 | { name: "IdentityDisconnected", args: IdentityDisconnected }
-| { name: "Migrate", args: Migrate }
 | { name: "PlayGreen", args: PlayGreen }
 | { name: "PlayRed", args: PlayRed }
 | { name: "ResetBank", args: ResetBank }
@@ -184,22 +173,6 @@ export class RemoteReducers {
 
   removeOnIdentityDisconnected(callback: (ctx: ReducerEventContext) => void) {
     this.connection.offReducer("identity_disconnected", callback);
-  }
-
-  migrate(p: Person) {
-    const __args = { p };
-    let __writer = new BinaryWriter(1024);
-    Migrate.getTypeScriptAlgebraicType().serialize(__writer, __args);
-    let __argsBuffer = __writer.getBuffer();
-    this.connection.callReducer("migrate", __argsBuffer, this.setCallReducerFlags.migrateFlags);
-  }
-
-  onMigrate(callback: (ctx: ReducerEventContext, p: Person) => void) {
-    this.connection.onReducer("migrate", callback);
-  }
-
-  removeOnMigrate(callback: (ctx: ReducerEventContext, p: Person) => void) {
-    this.connection.offReducer("migrate", callback);
   }
 
   playGreen() {
@@ -272,11 +245,6 @@ export class SetReducerFlags {
   createPersonFlags: CallReducerFlags = 'FullUpdate';
   createPerson(flags: CallReducerFlags) {
     this.createPersonFlags = flags;
-  }
-
-  migrateFlags: CallReducerFlags = 'FullUpdate';
-  migrate(flags: CallReducerFlags) {
-    this.migrateFlags = flags;
   }
 
   playGreenFlags: CallReducerFlags = 'FullUpdate';
