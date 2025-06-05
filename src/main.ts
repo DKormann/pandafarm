@@ -87,18 +87,11 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
   conn.reducers.onPlayRed((c=>{
     updateGame(c);
   }))
+
   conn.reducers.onPlayGreen(updateGame)
-
   conn.reducers.onSellGameWorth(updateGame)
-
   conn.reducers.onResetBank(updateGame)
-
-  conn.reducers.onSetPersonName((ctx: ReducerEventContext)=>{
-    // console.log("onSetPersonName", ctx.event.status)
-    // if (ctx.event.status.tag == "Failed") {
-    //   alert("Failed to set name:" + ctx.event.status.value)
-    // };
-  })
+  conn.reducers.onSetPersonName(updateGame)
 
   updateCompetition(conn);
 

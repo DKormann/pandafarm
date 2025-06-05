@@ -1,7 +1,3 @@
-
-
-
-
 import { createHTMLElement } from "./html";
 import { Person } from "./module_bindings";
 import { Writable, Readable } from "./store";
