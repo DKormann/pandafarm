@@ -7,8 +7,10 @@ import { DbConnection, ErrorContext, Person, ReducerEventContext, SubscriptionEv
 import { createGame } from "./online_game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
+import { UserCard } from "./user_card"
 
 export {}
+
 
 const dbname = "pandadb2"
 const servermode : 'local'|'remote'  = 'remote';
@@ -16,11 +18,13 @@ const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 
 const log = console.log
 
-type ServerSession = {
+export type ServerSession = {
   conn: DbConnection,
   player: Readable<Person>,
+  goto: (path:string) => void,
 }
 
+log(window.location.pathname)
 
 function requestPlayer(conn: DbConnection | SubscriptionEventContext, identity: Identity, callback: (person: Person) => void, fail : () => void) {
   const query = `SELECT * FROM person WHERE id == '${identity.toHexString()}'`
@@ -87,7 +91,8 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
     const session: ServerSession = {
       conn: conn,
-      player: writable
+      player: writable,
+      goto: goto,
     }
     waiter.remove();
 
@@ -112,8 +117,11 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
 }
 
-const waiter = createHTMLElement("h1", {}, "Waiting for connection...");
-document.body.appendChild(waiter);
+const head = createHTMLElement("h2", {parentElement:document.body}, "Panda Farm")
+
+const waiter = createHTMLElement("h1", {parentElement:document.body}, "Waiting for connection...");
+
+const page = createHTMLElement("div", {id:"page", parentElement:document.body});
 
 // @ts-ignore
 const serverurl = (servermode == 'local') ? "ws://localhost:3000" : "wss://maincloud.spacetimedb.com";
@@ -133,9 +141,12 @@ function ConnectServer(){
 
 ConnectServer()
 
+
+function goto(url:string){
+  window.history.pushState({}, "", url);
+}
+
 function startGame(session: ServerSession){
-
-
 
   log(session)
 
@@ -153,20 +164,44 @@ function startGame(session: ServerSession){
     }
   })
 
-  let board = createLeaderboard(session.player, name=>session.conn.reducers.setPersonName(name), competition);
+  let board = createLeaderboard(session, competition);
 
-
-
+  
   const game = createGame(
     session.player,
     ()=>session.conn.reducers.sellGameWorth(),
     ()=>session.conn.reducers.playRed(),
     ()=>session.conn.reducers.playGreen(),
   );
+  
+  
+  function loadpath(url: string){
+    const path = url.split("/").filter(p => p.length > 0);
+    log("Loading path", path);
+    page.innerHTML = "";
+    if (path.length == 0){
+      page.appendChild(game);
+      page.appendChild(board);
+      return;
+    }
+    if (path[0] == "user"){
+      if (path[1]!=undefined){
+        page.appendChild(UserCard(session, path[1]));
 
-  document.body.appendChild(game);
-  document.body.appendChild(board);
+      }
+    }
+  }
 
+  window.addEventListener("popstate", (event) => {
+    log("Popstate event", event);
+    loadpath(window.location.pathname);
+  });
+
+  loadpath(window.location.pathname);
+
+  
+  
+  session.goto = (path: string) => {goto(path); loadpath(path)};
 
 }
 

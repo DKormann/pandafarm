@@ -7,6 +7,7 @@ import { AnimalAction } from "./module_bindings/animal_action_type.js";
 
 
 // const skins = ["1","2","4","8","16","32","64","128","256","512","1024",];
+
 export const skins = ["🐭","🐹","🐱","🐶","🐻","🐯","🦁","🐼","🐸","🐲",]
 
 export function createGame(
@@ -19,8 +20,6 @@ export function createGame(
   
   let game = createHTMLElement("div", { id: "game" });
 
-
-  createHTMLElement("h2", {parentElement:game}, "Panda Farm");
 
   const balanceElement = createHTMLElement("p", {parentElement: game});
   const animalsElement = createHTMLElement("div", {id: "animals", parentElement: game});

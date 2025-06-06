@@ -89,7 +89,10 @@ h1{
 .animal.active{
   transition: .5s;
   font-size: 1em;
+
 }
+
+
 
 .animal.dead{
   transition: .5s;
@@ -124,12 +127,29 @@ p.leaderitem{
   font-weight: bold;
   font-size: 1.5em;
   margin:0;
-  padding: .2em;
+  padding: .5em;
   padding-left: 2em;
+
 }
 
 .leaderitem:nth-child(even) {
   background-color: rgba(100,100,100, 0.2);
+}
+
+
+.nametag{
+  font-size: 1.2em;
+  font-weight: bold;
+  /* color: #fff; */
+  /* background-color: rgba(73, 46, 42, 0.169); */
+  padding: .2em;
+  border-radius: .5em;
+  /* border: 1px solid black; */
+
+}
+.nametag:hover{
+  /* background-color: rgba(73, 46, 42, 0.169); */
+  text-decoration: underline;
 }
 
 /* 
