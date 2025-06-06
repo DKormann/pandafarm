@@ -73,12 +73,20 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
     const writable = new Writable<Person>(player)
 
     const updatePlayer = (ctx: ReducerEventContext) => {
+      if (ctx.event.callerIdentity.toHexString() != identity.toHexString()){
+        return;
+      }
       requestPlayer(ctx, identity, p=>writable.set(p,true), ()=> {})
     }
 
     conn.reducers.onPlayGreen(updatePlayer)
 
-    conn.reducers.onPlayRed(c=>updatePlayer(c))
+    conn.reducers.onPlayRed(
+      c=>{
+        log("onPlayRed", c);
+        updatePlayer(c)
+
+  })
     conn.reducers.onSellGameWorth(updatePlayer)
     conn.reducers.onSetPersonName(c=>{
       if (c.event.status.tag == "Failed"){

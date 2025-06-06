@@ -63,6 +63,12 @@ export function createGame(
     }
 
     update(action:AnimalAction): Animal[] {
+      const bumb = (el = this.element) =>{
+        el.classList.add("fresh");
+        setTimeout(() => {
+          el.classList.remove("fresh");
+        }, 100);
+      }
       if (action.action.tag == "Dead"){
         this.element.classList.add("animal","dead")
         setTimeout(() => {
@@ -71,12 +77,9 @@ export function createGame(
         return [];
       }else if (action.action.tag == "Dublicate"){
         const child = new Animal(this.type);
-        child.element.classList.add("fresh");
-        this.element.classList.add("fresh");
-        setTimeout(() => {
-          this.element.classList.remove("fresh");
-          child.element.classList.remove("fresh");
-        }, 10);
+        bumb();
+        bumb(child.element);
+
         this.element.insertAdjacentElement("afterend", child.element);
         return [this,child];
       }else if (action.action.tag == "Levelup") {
@@ -88,10 +91,7 @@ export function createGame(
         },100);
         return [this];
       }else if (action.action.tag == "Stay"){
-        this.element.classList.remove("active");
-        setTimeout(() => {
-          this.element.classList.add("active");
-        }, 100);
+        bumb();
         return [this];
       }
       console.error("Unknown action type", action.action);
@@ -111,7 +111,10 @@ export function createGame(
   }
 
   player.subscribe(newplayer => {
+
+
     balanceElement.textContent = `bank: ${newplayer.bank}$`;
+    console.log(newplayer.lastActionResult);
     
     if (
       newplayer.lastActionResult.length == animals.length &&
