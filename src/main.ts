@@ -176,9 +176,10 @@ function startGame(session: ServerSession){
   
   
   function loadpath(url: string){
-    const path = url.split("/").filter(p => p.length > 0);
+    let path = url.split("/").filter(p => p.length > 0);
     log("Loading path", path);
     page.innerHTML = "";
+    if (path[0] == "pandafarm") path = path.slice(1);
     if (path.length == 0){
       page.appendChild(game);
       page.appendChild(board);
