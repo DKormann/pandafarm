@@ -10,14 +10,15 @@ export class Writable <T> {
     return this.value
   }
 
-  set(newValue: T): void {
-    if (newValue === this.value) return
+  set(newValue: T, force = false): void {
+    if (!force && newValue === this.value) return
 
     for (const listener of this.listeners) {
       listener(newValue)
     }
     this.value = newValue
   }
+
 
   update(updater: (value: T) => T): void {
     const newValue = updater(this.value)

@@ -78,6 +78,7 @@ h1{
   transition: 0.5s;
   font-size: .0em;
   display: inline;
+
 }
 
 .animal.active.fresh, .animal.fresh{
@@ -90,10 +91,10 @@ h1{
   font-size: 1em;
 }
 
-/* .animal.dead{
+.animal.dead{
   transition: .5s;
   font-size: 0;
-} */
+}
 
 .animal.active.wiggle{
   animation: pop 300ms ease;

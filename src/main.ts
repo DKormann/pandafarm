@@ -1,21 +1,18 @@
 
 import { Identity } from "@clockworklabs/spacetimedb-sdk"
 import { Readable, Stored, Writable } from "./store"
-import { AnimalAction, DbConnection,ErrorContext, EventContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings"
+import { DbConnection, ErrorContext, Person, ReducerEventContext, SubscriptionEventContext } from "./module_bindings"
 
 
-// import {create_game} from "./game"
 import { createGame } from "./online_game"
-import { createHTMLElement } from "./html"
 import { createLeaderboard } from "./leaderboard"
+import { createHTMLElement } from "./html"
 
 export {}
 
 const dbname = "pandadb2"
 const servermode : 'local'|'remote'  = 'remote';
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
-const userId = new Stored<string>(dbname + servermode + "-userId", "defaultUserId");
-const lastActionResult = new Stored<AnimalAction[]>(dbname + servermode + "-lastActionResult", []);
 
 const log = console.log
 
@@ -65,25 +62,25 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
 
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
-  log("Connected to server")
   dbtoken.set(token);
-  
   updateCompetition(conn);
 
   const startSession = (player: Person) => {
     const writable = new Writable<Person>(player)
 
     const updatePlayer = (ctx: ReducerEventContext) => {
-      requestPlayer(ctx, identity, p=>writable.set(p), ()=> {})
+      requestPlayer(ctx, identity, p=>writable.set(p,true), ()=> {})
     }
 
     conn.reducers.onPlayGreen(updatePlayer)
-    conn.reducers.onPlayRed(updatePlayer)
+
+    conn.reducers.onPlayRed(c=>updatePlayer(c))
     conn.reducers.onSellGameWorth(updatePlayer)
     conn.reducers.onSetPersonName(c=>{
       if (c.event.status.tag == "Failed"){
         alert("Failed to set name: " + c.event.status.value);
       }
+      updateCompetition(conn);
       updatePlayer(c);
     })
     conn.reducers.onResetBank(updatePlayer)
@@ -129,9 +126,7 @@ function ConnectServer(){
   .withModuleName(dbname)
   .withToken(dbtoken.get())
   .onConnect(onConnect)
-  .onConnectError((ctx: ErrorContext, error: Error) =>{
-    log("onConnectError", error)
-  })
+  .onConnectError((ctx: ErrorContext, error: Error) => log("onConnectError", error))
   .build()
   
 }

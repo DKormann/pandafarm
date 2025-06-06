@@ -193,6 +193,7 @@ pub fn sell_game_worth(ctx: &ReducerContext) -> Result<(), String> {
 
   person.bank += game_worth - 1;
   person.game_state = vec![0];
+  person.last_action_result = vec![];
 
   try_update_person(ctx, person)
 }

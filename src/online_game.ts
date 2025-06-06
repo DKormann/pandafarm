@@ -65,7 +65,7 @@ export function createGame(
 
     update(action:AnimalAction): Animal[] {
       if (action.action.tag == "Dead"){
-        this.element.classList.remove("active");
+        this.element.classList.add("animal","dead")
         setTimeout(() => {
           this.element.remove();
         }, 1000);
@@ -81,8 +81,21 @@ export function createGame(
         this.element.insertAdjacentElement("afterend", child.element);
         return [this,child];
       }else if (action.action.tag == "Levelup") {
-        this.settype(this.type + 1);
+        this.type = this.type + 1;
+        this.element.classList.remove("active");
+        setTimeout(() => {
+          this.element.textContent = skins[this.type];
+          this.element.classList.add("active");
+        },100);
+        return [this];
+      }else if (action.action.tag == "Stay"){
+        this.element.classList.remove("active");
+        setTimeout(() => {
+          this.element.classList.add("active");
+        }, 100);
+        return [this];
       }
+      console.error("Unknown action type", action.action);
       return [this];
     }
   }
