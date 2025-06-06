@@ -48,51 +48,39 @@ function requestPlayer(conn: DbConnection | SubscriptionEventContext, identity: 
 
 let competition = new Writable<Person[]>([]);
 
-function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
-  conn.subscriptionBuilder()
-  .onApplied((ctx: SubscriptionEventContext) => {
-
-    competition.set(Array.from(ctx.db.person.iter()))
-    log("Competition updated", competition.get());
-
-  })
-  .onError((ctx: ErrorContext) => {
-    log("Error in competition subscription", ctx.event);
-  })
-  .subscribe(`SELECT * FROM person WHERE highscore > 0 `)
-}
-
 
 
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
   dbtoken.set(token);
-  updateCompetition(conn);
+  // updateCompetition(conn);
+
+  conn.subscriptionBuilder()
+  .onApplied((ctx: SubscriptionEventContext) => {competition.set(Array.from(ctx.db.person.iter()))})
+  .onError((ctx: ErrorContext) => { console.error("Error in competition subscription", ctx.event); })
+  .subscribe(`SELECT * FROM person WHERE highscore > 0 `)
+
 
   const startSession = (player: Person) => {
     const writable = new Writable<Person>(player)
 
     const updatePlayer = (ctx: ReducerEventContext) => {
-      if (ctx.event.callerIdentity.toHexString() != identity.toHexString()){
-        return;
-      }
-      requestPlayer(ctx, identity, p=>writable.set(p,true), ()=> {})
+      if (ctx.event.status.tag !== "Committed") return
+      let persons = Array.from(ctx.db.person.iter())
+      competition.set(persons)
+      if (ctx.event.callerIdentity.toHexString() != identity.toHexString()) return;
+      persons.filter((p:Person)=>p.id.toHexString() == identity.toHexString()).forEach(p=>{
+      writable.set(p, true);
+      })
     }
 
     conn.reducers.onPlayGreen(updatePlayer)
-
-    conn.reducers.onPlayRed(
-      c=>{
-        log("onPlayRed", c);
-        updatePlayer(c)
-
-  })
+    conn.reducers.onPlayRed( c=>{updatePlayer(c)})
     conn.reducers.onSellGameWorth(updatePlayer)
     conn.reducers.onSetPersonName(c=>{
       if (c.event.status.tag == "Failed"){
         alert("Failed to set name: " + c.event.status.value);
       }
-      updateCompetition(conn);
       updatePlayer(c);
     })
     conn.reducers.onResetBank(updatePlayer)
@@ -162,7 +150,6 @@ function startGame(session: ServerSession){
 
     if (p.highscore != session.player.get().highscore){
       log("Highscore updated", p.highscore);
-      updateCompetition(session.conn);
     }
     if (p.bank == 0){
       let pr = window.prompt("You have no money left, say please to get more");
