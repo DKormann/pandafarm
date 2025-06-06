@@ -66,6 +66,7 @@ function updateCompetition(conn: DbConnection | SubscriptionEventContext) {
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
   log("Connected to server")
+  dbtoken.set(token);
   
   updateCompetition(conn);
 
@@ -79,7 +80,12 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
     conn.reducers.onPlayGreen(updatePlayer)
     conn.reducers.onPlayRed(updatePlayer)
     conn.reducers.onSellGameWorth(updatePlayer)
-    conn.reducers.onSetPersonName(updatePlayer)
+    conn.reducers.onSetPersonName(c=>{
+      if (c.event.status.tag == "Failed"){
+        alert("Failed to set name: " + c.event.status.value);
+      }
+      updatePlayer(c);
+    })
     conn.reducers.onResetBank(updatePlayer)
 
     const session: ServerSession = {

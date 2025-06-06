@@ -32,6 +32,35 @@ pub struct Person {
   last_action_result: Vec<AnimalAction>,
 }
 
+
+// #[table(name = payment, public)]
+// pub struct Payment {
+  
+
+#[table(name = messages, public)]
+pub struct Message{
+  sender: Identity,
+  receiver: Identity,
+  content: String,
+  timestamp: u64,
+}
+
+#[table(name = payments, public)]
+pub struct Payment {
+  sender: Identity,
+  receiver: Identity,
+  amount: u32,
+  timestamp: u64,
+}
+
+#[table(name = gifts, public)]
+pub struct Gift {
+  sender: Identity,
+  receiver: Identity,
+  animal: u32,
+  timestamp: u64,
+}
+
 const MAXLEVEL: u32 = 9;
 
 // secure game plan :
