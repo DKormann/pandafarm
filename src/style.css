@@ -48,6 +48,7 @@ h1{
   margin-top: 2em;
   user-select: none;
   transition: 0.1s;
+  user-select: none;
 }
 
 .bigbutton:active{
