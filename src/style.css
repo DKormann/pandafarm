@@ -137,6 +137,10 @@ p.leaderitem{
   margin:0;
   padding: .5em;
   padding-left: 2em;
+  max-width: 100vw;
+  white-space: wrap;
+  text-wrap:wrap;
+  overflow: hidden;
 
 }
 
