@@ -5,7 +5,7 @@ import { createHTMLElement } from "./html.js";
 import { Person } from "./module_bindings/person_type.js";
 import { AnimalAction } from "./module_bindings/animal_action_type.js";
 
-const REQUEST_TIMEOUT = 200; // milliseconds
+const REQUEST_TIMEOUT = 100; // milliseconds
 
 
 
