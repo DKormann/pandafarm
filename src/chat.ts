@@ -61,9 +61,27 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           console.log("applie");
           
           let newMessages:Message[] = Array.from(c.db.messages.iter()) as Message[]
+
+          console.log(person.id.data);
+          console.log(bothids);
           
-          newMessages = newMessages.filter((m:Message) => {
-            return bothids.includes(m.sender.data) && bothids.includes(self.id.data)
+          
+          
+          newMessages = newMessages.filter((m:Message) => {            
+
+            console.log(m.receiver.data);
+            console.log(m.sender.data);
+            console.log(m.receiver.data==self.id.data);
+
+            if (m.receiver.data == self.id.data){
+              return m.sender.data == person.id.data
+            }else if(m.sender.data == self.id.data){
+              return m.receiver.data == person.id.data
+            }
+            return false
+            
+            
+
           });
 
           console.log(newMessages);
