@@ -155,6 +155,10 @@ p.leaderitem{
   text-decoration: underline;
 }
 
+#chat{
+  padding-top: 4em;
+  margin-bottom: 6em;
+}
 
 #chat_input{
   height: 2em;
@@ -173,7 +177,7 @@ p.leaderitem{
   height: 80vh;
   overflow: scroll;
   bottom: 6em;
-  position: fixed;
+  /* position: fixed; */
   width: 100%;
   text-align: center;
 }

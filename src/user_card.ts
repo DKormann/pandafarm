@@ -1,3 +1,4 @@
+import { Chat } from "./chat";
 import { createHTMLElement } from "./html";
 import { ServerSession } from "./main";
 import { skins } from "./online_game";
@@ -16,10 +17,17 @@ export function UserCard(session:ServerSession, userName: string) {
         createHTMLElement("p", {parentElement:card}, `bank: ${person.bank}$`);
         createHTMLElement("p", {parentElement:card}, `Highscore: ${person.highscore}$ ${person.highscoreState.reduce((acc:string, curr:number) => acc + skins[curr], "")}`);
 
-        const message_button = createHTMLElement("button", {
-          parentElement: card,
-        }, "Message");
-        message_button.onclick = ()=> session.goto(`/chat/${userName}`)
+        // const message_button = createHTMLElement("button", {
+        //   parentElement: card,
+        // }, "Message");
+
+
+
+        // message_button.onclick = ()=> session.goto(`/chat/${userName}`)
+
+        card.appendChild(Chat(session, person.name))
+
+
       }
     }
   })
