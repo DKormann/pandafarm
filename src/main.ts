@@ -13,12 +13,18 @@ export {}
 
 
 const dbname = "pandadb2"
-const servermode : 'local'|'remote'  = 'remote';
+
+
+// const servermode : 'local'|'remote'  = 'remote';
 // const servermode : 'local'|'remote' = 'local';
+
+const servermode : 'local'|'remote' = (window.location.pathname.split("/").includes("local")) ? 'local' : 'remote';
 
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 
 const log = console.log
+
+
 
 export type ServerSession = {
   conn: DbConnection,
@@ -178,6 +184,7 @@ function startGame(session: ServerSession){
     log("Loading path", path);
     page.innerHTML = "";
     if (path[0] == "pandafarm") path = path.slice(1);
+    if (path[0] == "local") path = path.slice(1);
     if (path.length == 0){
       page.appendChild(game);
       page.appendChild(board);

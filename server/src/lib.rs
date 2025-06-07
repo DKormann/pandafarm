@@ -168,26 +168,10 @@ pub fn create_person(ctx: &ReducerContext) -> Result<(), String> {
     last_action_result: vec![],
   };
 
-  let res = ctx.db.person().try_insert(person);
-  match res{
-    Ok(p)=>{
-      log::info!("Person created with id: {}", p.id);
-      Ok(())
-    }
-    Err(e)=>{
-      log::error!("Error creating person: {}", e);
-      Err(e.to_string())
-    }
-  }
+  ctx.db.person().insert(person);
+  Ok(())
 }   
 
-
-fn try_update_person(ctx: &ReducerContext, person: Person) -> Result<(), String> {
-  ctx.db.person().id().delete(ctx.sender);
-  ctx.db.person().try_insert(person)
-    .map_err(|e| e.to_string())
-    .map(|_| ())
-}
 
 fn get_person(ctx: &ReducerContext) -> Result<Person, String> {
   ctx.db.person().id().find(ctx.sender)
@@ -203,7 +187,8 @@ pub fn set_person_name(ctx: &ReducerContext, name: String) -> Result<(), String>
   if person.name == name {return Ok(());}
 
   person.name = name;
-  try_update_person(ctx, person)
+  ctx.db.person().id().update(person);
+  Ok(())
 }
 
 
@@ -223,7 +208,9 @@ pub fn reset_bank(ctx: &ReducerContext) -> Result<(), String> {
   if person.bank > 0 {return Ok(());}
   person.bank = (ctx.random::<f32>().fract() * 100.).floor() as u32 + 1;
   person.game_state = vec![0];
-  try_update_person(ctx, person)
+
+  ctx.db.person().id().update(person);
+  Ok(())
 }
 
 
@@ -248,7 +235,8 @@ pub fn sell_game_worth(ctx: &ReducerContext) -> Result<(), String> {
   person.game_state = vec![0];
   person.last_action_result = vec![];
 
-  try_update_person(ctx, person)
+  ctx.db.person().id().update(person);
+  Ok(())
 }
 
 
@@ -286,7 +274,8 @@ fn apply_animal_actions(ctx: &ReducerContext, mut player: Person, actions: Vec<A
   
   player.last_action_result = actions;
 
-  try_update_person(ctx, player)
+  ctx.db.person().id().update(player);
+  Ok(())
 }
 
 // use rand::{prelude::*, Rng};
@@ -338,3 +327,5 @@ pub fn play_green(ctx: &ReducerContext) -> Result<(), String> {
   apply_animal_actions(ctx, person, actions)
 }
       
+
+
