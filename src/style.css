@@ -19,6 +19,11 @@ body{
   }
 }
 
+#head:hover{
+  text-decoration: underline;
+
+}
+
 #game{
   width:100%;
   height:100%;

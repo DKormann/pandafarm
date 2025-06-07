@@ -20,7 +20,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
   getPersonByName(session, target)
     .then((person: Person) => {
 
-      createHTMLElement("h2", {parentElement: el}, `Chat with ${person.name}`);
+      // createHTMLElement("h2", {parentElement: el}, `Chat with ${person.name}`);
 
       const messagesElement = createHTMLElement("div", {parentElement: el, id: "messages"});
 
@@ -45,6 +45,14 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
       messages.subscribe((msgs: Message[]) => {
         messagesElement.innerHTML = "";
+
+        if (msgs.length === 0) {
+          createHTMLElement("div", {
+            parentElement: messagesElement,
+
+          }, "No messages yet.");
+        }
+
         msgs.forEach((msg: Message) => {
           const sender = msg.sender.data == self.id.data ? "me" : person.name
           createHTMLElement("p", {parentElement: messagesElement}, `${sender}: ${msg.content}`);
@@ -97,7 +105,6 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         messages.update((msgs) => {
           return [...msgs,
             {
-              // sender: self.name, content: "snding"+msg
               sender: self.id,
               content:"sndning " + msg,
               receiver: person.id,
@@ -122,9 +129,6 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         getmessages()
       })
 
-      // messages.set([{sender: "System", content: "Welcome to the chat!"}]);
-
-      // sendMessage("hello")
       getmessages()
 
     })

@@ -123,7 +123,11 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
 }
 
-const head = createHTMLElement("h2", {parentElement:document.body}, "Panda Farm")
+const head = createHTMLElement("h2", {
+  parentElement:document.body,
+  id:"head",
+}, "🏠 Panda Farm")
+
 
 const waiter = createHTMLElement("h1", {parentElement:document.body}, "Waiting for connection...");
 
@@ -148,7 +152,16 @@ function ConnectServer(){
 ConnectServer()
 
 
+const start_path = window.location.pathname.split("/").filter(p => ["pandafarm", "local"].includes(p)).join("/") + "/";
+
+log("Start path:", start_path);
+
 function goto(url:string){
+  url = start_path + url;
+  url = url.split("/").filter(p => p.length > 0).join("/");
+  
+  url = window.origin + "/" + url
+  log("Goto", url);
   window.history.pushState({}, "", url);
 }
 
@@ -181,9 +194,7 @@ function startGame(session: ServerSession){
   
   
   function loadpath(url: string){
-    log("Loading path", url);
     let path = url.split("/").filter(p => p.length > 0);
-    log("Loading path", path);
     page.innerHTML = "";
     if (path[0] == "pandafarm") path = path.slice(1);
     if (path[0] == "local") path = path.slice(1);
