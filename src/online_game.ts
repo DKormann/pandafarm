@@ -183,9 +183,23 @@ export function createGame(
   }
 
 
-  redbutton.onclick = ()=>triggerRequest(red);
-  greenbutton.onclick = ()=>triggerRequest(green);
-  sellbutton.onclick = ()=>triggerRequest(sell);
+  // redbutton.onclick = ()=>triggerRequest(red);
+  // greenbutton.onclick = ()=>triggerRequest(green);
+  // sellbutton.onclick = ()=>triggerRequest(sell);
+
+  redbutton.addEventListener("click", e => {
+    e.preventDefault();
+    triggerRequest(red);
+  })
+
+  greenbutton.addEventListener("click", e => {
+    e.preventDefault();
+    triggerRequest(green);
+  })
+  sellbutton.addEventListener("click", e => {
+    e.preventDefault();
+    triggerRequest(sell);
+  })
 
 
   return game
