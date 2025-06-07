@@ -23,7 +23,10 @@ export default defineConfig(({ command, mode }) => {
       outDir: 'docs',
       emptyOutDir: true,
       rollupOptions: {
-        input: '/index.html',
+        input: {
+          main : "index.html",
+          notFound: "404.html",
+        },
         output: {
           entryFileNames: 'assets/[name].[hash].js',
           chunkFileNames: 'assets/[name].[hash].js',
