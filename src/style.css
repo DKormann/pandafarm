@@ -183,15 +183,33 @@ p.leaderitem{
   overflow: scroll;
   bottom: 6em;
   /* position: fixed; */
-  width: 100%;
+  width: 100vw;
   text-align: center;
 }
+.msg{
+  padding: 0;
+  width:100%;
+  margin: 0em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
-#messages>p{
-  padding: 1em;
-  background-color: gray;
-  width:fit-content;
-  margin: auto;
-  margin-bottom: 1em;
+.msg.me{
+  color: white;
+  align-items: flex-end;
+}
+
+.msg>p{
   border-radius: 1em;
+  margin: 1em;
+  padding: .5em 1em;
+  width: fit-content;
+  text-align: left;
+  background-color: rgb(59, 103, 166);
+
+}
+
+.msg.me>p{
+  background-color: rgb(76, 171, 71);
 }

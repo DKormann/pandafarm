@@ -14,11 +14,6 @@ export {}
 
 
 const dbname = "pandadb2"
-
-
-// const servermode : 'local'|'remote'  = 'remote';
-// const servermode : 'local'|'remote' = 'local';
-
 const servermode : 'local'|'remote' = (window.location.pathname.split("/").includes("local")) ? 'local' : 'remote';
 
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
@@ -167,7 +162,6 @@ function goto(url:string){
 
 function startGame(session: ServerSession){
 
-  log(session)
 
   session.player.subscribe(p=>{
 

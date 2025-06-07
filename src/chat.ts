@@ -8,8 +8,6 @@ import { Message } from "./module_bindings";
 
 
 
-
-
 export function Chat(session: ServerSession, target:string): HTMLElement {
 
   const el = createHTMLElement("div", {id: "chat"});
@@ -19,8 +17,6 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
   getPersonByName(session, target)
     .then((person: Person) => {
-
-      // createHTMLElement("h2", {parentElement: el}, `Chat with ${person.name}`);
 
       const messagesElement = createHTMLElement("div", {parentElement: el, id: "messages"});
 
@@ -43,7 +39,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
       let messages: Writable<Message[]> = new Writable<Message[]>([]);
 
-      messages.subscribe((msgs: Message[]) => {
+      messages.subscribeLater((msgs: Message[]) => {
         messagesElement.innerHTML = "";
 
         if (msgs.length === 0) {
@@ -55,49 +51,43 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
         msgs.forEach((msg: Message) => {
           const sender = msg.sender.data == self.id.data ? "me" : person.name
-          createHTMLElement("p", {parentElement: messagesElement}, `${sender}: ${msg.content}`);
+
+          createHTMLElement("p", {
+            parentElement: createHTMLElement("p", {
+              parentElement: messagesElement,
+              class: sender == "me" ? "msg me" : "msg",
+            })
+          }, msg.content)
         });
         messagesElement.scrollTop = messagesElement.scrollHeight;
       });
 
-      let bothids = [person.id.data, self.id.data];
 
       const getmessages = ()=>{
         session.conn.subscriptionBuilder()
 
         .onApplied(c=>{
-          console.log("applie");
           
           let newMessages:Message[] = Array.from(c.db.messages.iter()) as Message[]
 
-          console.log(person.id.data);
-          console.log(bothids);
-          
-          
-          
-          newMessages = newMessages.filter((m:Message) => {            
-
-            console.log(m.receiver.data);
-            console.log(m.sender.data);
-            console.log(m.receiver.data==self.id.data);
-
-            if (m.receiver.data == self.id.data){
-              return m.sender.data == person.id.data
-            }else if(m.sender.data == self.id.data){
-              return m.receiver.data == person.id.data
+          newMessages = newMessages.filter((msg: Message) => {
+            if (msg.sender.data == self.id.data && msg.receiver.data == person.id.data) {
+              return true;
             }
-            return false
-            
-            
-
+            if (msg.sender.data == person.id.data && msg.receiver.data == self.id.data) {
+              return true;
+            }
+            return false;
           });
 
-          console.log(newMessages);
-          
+
+          console.log(newMessages);          
           messages.set(newMessages);
 
         })
-        .subscribe("SELECT * FROM messages")
+        .subscribe(`SELECT * FROM messages WHERE
+          ((sender == '${self.id.toHexString()}' AND receiver == '${person.id.toHexString()}')
+        OR (sender == '${person.id.toHexString()}' AND receiver == '${self.id.toHexString()}'))`)
 
       }
 
