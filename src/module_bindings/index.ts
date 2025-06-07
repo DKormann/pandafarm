@@ -34,8 +34,6 @@ import {
 // Import and reexport all reducer arg types
 import { CreatePerson } from "./create_person_reducer.ts";
 export { CreatePerson };
-import { Follow } from "./follow_reducer.ts";
-export { Follow };
 import { IdentityConnected } from "./identity_connected_reducer.ts";
 export { IdentityConnected };
 import { IdentityDisconnected } from "./identity_disconnected_reducer.ts";
@@ -48,6 +46,8 @@ import { ResetBank } from "./reset_bank_reducer.ts";
 export { ResetBank };
 import { SellGameWorth } from "./sell_game_worth_reducer.ts";
 export { SellGameWorth };
+import { SendGift } from "./send_gift_reducer.ts";
+export { SendGift };
 import { SendMessage } from "./send_message_reducer.ts";
 export { SendMessage };
 import { SetPersonName } from "./set_person_name_reducer.ts";
@@ -129,10 +129,6 @@ const REMOTE_MODULE = {
       reducerName: "create_person",
       argsType: CreatePerson.getTypeScriptAlgebraicType(),
     },
-    follow: {
-      reducerName: "follow",
-      argsType: Follow.getTypeScriptAlgebraicType(),
-    },
     identity_connected: {
       reducerName: "identity_connected",
       argsType: IdentityConnected.getTypeScriptAlgebraicType(),
@@ -156,6 +152,10 @@ const REMOTE_MODULE = {
     sell_game_worth: {
       reducerName: "sell_game_worth",
       argsType: SellGameWorth.getTypeScriptAlgebraicType(),
+    },
+    send_gift: {
+      reducerName: "send_gift",
+      argsType: SendGift.getTypeScriptAlgebraicType(),
     },
     send_message: {
       reducerName: "send_message",
@@ -193,13 +193,13 @@ const REMOTE_MODULE = {
 // A type representing all the possible variants of a reducer.
 export type Reducer = never
 | { name: "CreatePerson", args: CreatePerson }
-| { name: "Follow", args: Follow }
 | { name: "IdentityConnected", args: IdentityConnected }
 | { name: "IdentityDisconnected", args: IdentityDisconnected }
 | { name: "PlayGreen", args: PlayGreen }
 | { name: "PlayRed", args: PlayRed }
 | { name: "ResetBank", args: ResetBank }
 | { name: "SellGameWorth", args: SellGameWorth }
+| { name: "SendGift", args: SendGift }
 | { name: "SendMessage", args: SendMessage }
 | { name: "SetPersonName", args: SetPersonName }
 ;
@@ -217,22 +217,6 @@ export class RemoteReducers {
 
   removeOnCreatePerson(callback: (ctx: ReducerEventContext) => void) {
     this.connection.offReducer("create_person", callback);
-  }
-
-  follow(target: Identity) {
-    const __args = { target };
-    let __writer = new BinaryWriter(1024);
-    Follow.getTypeScriptAlgebraicType().serialize(__writer, __args);
-    let __argsBuffer = __writer.getBuffer();
-    this.connection.callReducer("follow", __argsBuffer, this.setCallReducerFlags.followFlags);
-  }
-
-  onFollow(callback: (ctx: ReducerEventContext, target: Identity) => void) {
-    this.connection.onReducer("follow", callback);
-  }
-
-  removeOnFollow(callback: (ctx: ReducerEventContext, target: Identity) => void) {
-    this.connection.offReducer("follow", callback);
   }
 
   onIdentityConnected(callback: (ctx: ReducerEventContext) => void) {
@@ -299,6 +283,22 @@ export class RemoteReducers {
     this.connection.offReducer("sell_game_worth", callback);
   }
 
+  sendGift(receiver: Identity, animal: number) {
+    const __args = { receiver, animal };
+    let __writer = new BinaryWriter(1024);
+    SendGift.getTypeScriptAlgebraicType().serialize(__writer, __args);
+    let __argsBuffer = __writer.getBuffer();
+    this.connection.callReducer("send_gift", __argsBuffer, this.setCallReducerFlags.sendGiftFlags);
+  }
+
+  onSendGift(callback: (ctx: ReducerEventContext, receiver: Identity, animal: number) => void) {
+    this.connection.onReducer("send_gift", callback);
+  }
+
+  removeOnSendGift(callback: (ctx: ReducerEventContext, receiver: Identity, animal: number) => void) {
+    this.connection.offReducer("send_gift", callback);
+  }
+
   sendMessage(receiver: Identity, content: string) {
     const __args = { receiver, content };
     let __writer = new BinaryWriter(1024);
@@ -339,11 +339,6 @@ export class SetReducerFlags {
     this.createPersonFlags = flags;
   }
 
-  followFlags: CallReducerFlags = 'FullUpdate';
-  follow(flags: CallReducerFlags) {
-    this.followFlags = flags;
-  }
-
   playGreenFlags: CallReducerFlags = 'FullUpdate';
   playGreen(flags: CallReducerFlags) {
     this.playGreenFlags = flags;
@@ -362,6 +357,11 @@ export class SetReducerFlags {
   sellGameWorthFlags: CallReducerFlags = 'FullUpdate';
   sellGameWorth(flags: CallReducerFlags) {
     this.sellGameWorthFlags = flags;
+  }
+
+  sendGiftFlags: CallReducerFlags = 'FullUpdate';
+  sendGift(flags: CallReducerFlags) {
+    this.sendGiftFlags = flags;
   }
 
   sendMessageFlags: CallReducerFlags = 'FullUpdate';

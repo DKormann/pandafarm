@@ -17,3 +17,14 @@ const element = document.createElement(tag);
   element.textContent = content;
   return element;
 }
+
+
+export function Dialog(){
+  const dialog = createHTMLElement("div", {class: "prompt_window"});
+  const inner  = createHTMLElement("div", {class: "prompt_inner", parentElement: dialog});
+  dialog.addEventListener("click", (e) => {
+    dialog.remove();
+  })
+  document.body.appendChild(dialog);
+  return inner
+}

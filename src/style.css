@@ -2,6 +2,7 @@ body{
   background-color: #333;
 
   --color : #fff;
+  --bg : #333;
 
   color: #fff;
 
@@ -19,6 +20,8 @@ body{
   body {
     background-color: #fff;
     color: #333;
+    --color : #333;
+    --bg : #fff;
   }
 }
 
@@ -202,8 +205,57 @@ p.leaderitem{
   border: unset;
   position: fixed;
   bottom: 1em;
-  width: 90%;
-  left:5%;
+  width: calc(100vw - 7em);
+  left:4em;
+}
+
+#gift_button{
+  position: fixed;
+  font-size: 1.5em;;
+  padding:.5em;
+  height:2em;
+  border-radius: .5em;
+  bottom:1em;
+  left:.5em;
+  width:2em;
+  border:unset;
+  background-color: transparent;
+  border:1px solid gold;
+}
+
+
+.prompt_window{
+  position: fixed;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  background-color: #5d5d5d8a;
+}
+
+
+.prompt_window>div{
+  background-color: var(--bg);
+  margin:2em;
+  padding: 1em;
+  border-radius: 1em;
+}
+
+.prompt_window>div>*.option{
+  font-size: 1.2em;
+  margin: 0;
+  padding: .1em;
+
+  border:1px solid gold;
+  border-radius: .5em;
+  cursor: pointer;
+
+  width:fit-content;
+  margin:auto;
+  margin-bottom: .4em;
+  /* text-decoration: underline; */
 }
 
 #messages{

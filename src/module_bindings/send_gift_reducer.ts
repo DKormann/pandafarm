@@ -31,30 +31,32 @@ import {
   deepEqual,
 } from "@clockworklabs/spacetimedb-sdk";
 
-export type Follow = {
-  target: Identity,
+export type SendGift = {
+  receiver: Identity,
+  animal: number,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace Follow {
+export namespace SendGift {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("target", AlgebraicType.createIdentityType()),
+      new ProductTypeElement("receiver", AlgebraicType.createIdentityType()),
+      new ProductTypeElement("animal", AlgebraicType.createU32Type()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: Follow): void {
-    Follow.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: SendGift): void {
+    SendGift.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): Follow {
-    return Follow.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): SendGift {
+    return SendGift.getTypeScriptAlgebraicType().deserialize(reader);
   }
 
 }

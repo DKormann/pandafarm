@@ -350,15 +350,34 @@ pub fn send_message(ctx: &ReducerContext, receiver: Identity, content: String) -
   Ok(())
 }
 
+
+
 #[reducer]
-pub fn follow(ctx: &ReducerContext, target: Identity) -> Result<(), String> {
-  check_spam(ctx)?;
+pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Result<(), String> {
+  check_spam(ctx).unwrap();
 
-  ctx.db.followers().insert(Follower {
-    id: ctx.sender,
-    target,
-  });
+  let price = (2 as u32).pow(animal);
+
+  let mut sender = ctx.db.person().id().find(ctx.sender).unwrap();
+    
+
+  if sender.bank < price {
+    return Err("Not enough bank balance".to_string());
+  }
+
+  sender.bank -= price;
+  ctx.db.person().id().update(sender);
+  let mut receiver = ctx.db.person().id().find(receiver).unwrap();
+  receiver.bank += price;
+
+
+  let gift = Gift {
+    sender: ctx.sender,
+    receiver: receiver.id,
+    animal,
+    timestamp: ctx.timestamp.to_micros_since_unix_epoch() as u64,
+  };
+
+  ctx.db.gifts().insert(gift);
   Ok(())
-
 }
-

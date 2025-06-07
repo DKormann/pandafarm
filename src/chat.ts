@@ -1,11 +1,12 @@
 
-import { createHTMLElement } from "./html";
+import { Dialog, createHTMLElement } from "./html";
 import { ServerSession } from "./main";
-import { Person, PlayGreen } from "./module_bindings";
+import { Gift, Person, PlayGreen } from "./module_bindings";
 import { getPersonByName } from "./server_helpers";
 import { Writable } from "./store";
 import { Message } from "./module_bindings";
 import { Identity } from "@clockworklabs/spacetimedb-sdk";
+import { skins } from "./online_game";
 
 
 
@@ -29,7 +30,6 @@ export function ChatSessions(session: ServerSession): HTMLElement{
         lastmessages.set(otherId, msg);
       }
     }
-
 
     for (let m of ctx.db.messages.iter()){
       if (m.sender.data == self.id.data){
@@ -81,6 +81,32 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
       const messagesElement = createHTMLElement("div", {parentElement: el, id: "messages"});
 
+      // const giftbutton = createHTMLElement("button", {
+      //   parentElement: el,
+      //   id: "gift_button"
+      // }, "🎁");
+
+      // giftbutton.addEventListener("click", () => {
+      //   const dialog = Dialog();
+      //   createHTMLElement("h2", {parentElement: dialog}, `Send a gift to ${person.name}`);
+
+      //   for (let i = 1; i <= 10; i++) {
+      //     const button = createHTMLElement("p", {
+      //       parentElement: dialog,
+      //       class: "gift_button option"
+      //     }, `${skins[i-1]} ${2**(i-1)}$`);
+
+      //     button.addEventListener("click", () => {
+      //       // session.conn.reducers.sendGift(person.id, i);
+      //       dialog.remove();
+      //     });
+      //   }
+
+      //   // el.appendChild(dialog);
+
+      // });
+      
+
       const message_input = createHTMLElement("textarea", {
         parentElement: el,
         id: "chat_input"
@@ -98,9 +124,23 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         }
       });
 
-      let messages: Writable<Message[]> = new Writable<Message[]>([]);
+      // type GiftOrMessage = {
+      //   type: "gift",
+      //   sender: Identity,
+      //   receiver: Identity,
+      //   animal: Number,
+      // } | {
+      //   type: "message",
+      //   sender: Identity,
+      //   receiver: Identity,
+      //   content: string,
+      // }
 
-      messages.subscribeLater((msgs: Message[]) => {
+      type sendable = Message;
+      let messages: Writable<Message[]> = new Writable<sendable[]>([]);
+
+
+      messages.subscribeLater((msgs: sendable[] ) => {
         messagesElement.innerHTML = "";
 
         if (msgs.length === 0) {
@@ -110,7 +150,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           }, "No messages yet.");
         }
 
-        msgs.forEach((msg: Message) => {
+        msgs.forEach((msg: sendable) => {
           const sender = msg.sender.data == self.id.data ? "me" : person.name
 
           createHTMLElement("p", {
@@ -118,7 +158,10 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
               parentElement: messagesElement,
               class: sender == "me" ? "msg me" : "msg",
             })
-          }, msg.content)
+          },
+            msg.content
+            // msg instanceof Message ? `${sender}: ${msg.content}` :
+          )
         });
         messagesElement.scrollTop = messagesElement.scrollHeight;
       });
