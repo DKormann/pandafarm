@@ -1,7 +1,7 @@
 
 use std::vec;
 
-use spacetimedb::{rand::Rng, reducer, table, Identity, ReducerContext, Table};
+use spacetimedb::{rand::{seq::index, Rng}, reducer, table, Identity, ReducerContext, Table};
 
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
@@ -11,8 +11,6 @@ pub enum AnimalActionType{
   Dead,
   Stay,
 }
-
-
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
 pub struct AnimalAction{
@@ -69,6 +67,15 @@ pub struct Gift {
   receiver: Identity,
   animal: u32,
   timestamp: u64,
+}
+
+#[table(name = followers, public)]
+pub struct Follower{
+  #[primary_key]
+  id: Identity,
+
+  #[index(btree)]
+  target: Identity,
 }
 
 const MAXLEVEL: u32 = 9;
@@ -341,5 +348,17 @@ pub fn send_message(ctx: &ReducerContext, receiver: Identity, content: String) -
 
   ctx.db.messages().insert(message);
   Ok(())
+}
+
+#[reducer]
+pub fn follow(ctx: &ReducerContext, target: Identity) -> Result<(), String> {
+  check_spam(ctx)?;
+
+  ctx.db.followers().insert(Follower {
+    id: ctx.sender,
+    target,
+  });
+  Ok(())
+
 }
 

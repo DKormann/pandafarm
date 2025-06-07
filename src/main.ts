@@ -8,7 +8,7 @@ import { createGame } from "./online_game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
 import { UserCard } from "./user_card"
-import { Chat } from "./chat"
+import { Chat, ChatSessions } from "./chat"
 
 export {}
 
@@ -126,6 +126,10 @@ const head = createHTMLElement("h2", {
 
 const waiter = createHTMLElement("h1", {parentElement:document.body}, "Waiting for connection...");
 
+
+const navbar = createHTMLElement("nav", {id:"navbar", parentElement:document.body});
+
+
 const page = createHTMLElement("div", {id:"page", parentElement:document.body});
 
 // @ts-ignore
@@ -160,11 +164,13 @@ function goto(url:string){
   window.history.pushState({}, "", url);
 }
 
-function startGame(session: ServerSession){
 
+
+function startGame(session: ServerSession){
+  
+  
 
   session.player.subscribe(p=>{
-
     if (p.highscore != session.player.get().highscore){
       log("Highscore updated", p.highscore);
     }
@@ -176,7 +182,7 @@ function startGame(session: ServerSession){
     }
   })
 
-  let board = createLeaderboard(session, competition);
+  const board = createLeaderboard(session, competition);
 
   
   const game = createGame(
@@ -203,8 +209,12 @@ function startGame(session: ServerSession){
         return
       }
     }else if (path[0] == "chat"){
+      log(path)
       if (path[1] != undefined){
         page.appendChild(Chat(session, path[1]));
+        return
+      }else{
+        page.appendChild(ChatSessions(session));
         return
       }
     }
@@ -222,6 +232,22 @@ function startGame(session: ServerSession){
   
   session.goto = (path: string) => {goto(path); loadpath(path)};
   head.onclick = () => session.goto("/")
+
+  const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
+  homebutn.onclick = () => {
+    navbar.querySelectorAll(".active").forEach(el => el.classList.remove("active"));
+    homebutn.classList.add("active");
+    session.goto("/")
+  }
+
+  const msgbutn = createHTMLElement("span", {parentElement:navbar, id:"msgbutn"}, "messages")
+  msgbutn.onclick = () => {
+    navbar.querySelectorAll(".active").forEach(el => el.classList.remove("active"));
+    msgbutn.classList.add("active");
+    session.goto("/chat")
+  }
+
+
 
 }
 

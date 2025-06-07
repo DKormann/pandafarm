@@ -5,7 +5,68 @@ import { Person, PlayGreen } from "./module_bindings";
 import { getPersonByName } from "./server_helpers";
 import { Writable } from "./store";
 import { Message } from "./module_bindings";
+import { Identity } from "@clockworklabs/spacetimedb-sdk";
 
+
+
+
+export function ChatSessions(session: ServerSession): HTMLElement{
+  const el = createHTMLElement("div", {id: "chat_sessions"});
+
+  const self = session.player.get();
+
+  session.conn.subscriptionBuilder()
+  .onApplied((ctx) => {
+    // const sessions: string[] = [];
+    const lastmessages: Map<string, Message> = new Map();
+
+    const addSession = (msg: Message) => {
+      const otherId = msg.sender.data == self.id.data ? msg.receiver.toHexString() : msg.sender.toHexString();
+      if (!lastmessages.has(otherId)) {
+        // sessions.push(otherId);
+        lastmessages.set(otherId, msg);
+      }else if (lastmessages.get(otherId)!.timestamp < msg.timestamp) {
+        lastmessages.set(otherId, msg);
+      }
+    }
+
+
+    for (let m of ctx.db.messages.iter()){
+      if (m.sender.data == self.id.data){
+        addSession(m);
+      }
+      if (m.receiver.data == self.id.data){
+        addSession(m);
+      }
+    }
+
+    let entries = Array.from(lastmessages.entries());
+    entries = entries.sort((a, b) => (b[1].timestamp > a[1].timestamp) ? 1 : -1);
+    for(let [s, msg] of entries){
+      const p = session.conn.db.person.id.find(Identity.fromString(s))  
+      const sessbutn = createHTMLElement("p", {
+        parentElement: el,
+        class: "session",
+      });
+      sessbutn.addEventListener("click", () => {
+        session.goto(`/chat/${p?.name ?? "Unknown"}`);
+      });
+
+      createHTMLElement("p", {
+        parentElement: sessbutn,
+        class: "session_tag",
+      }, p? p.name : "Unknown");
+      createHTMLElement("p", {
+        parentElement: sessbutn,
+        class: "session_msg",
+      }, msg.content);
+
+    }
+  })
+  .subscribe(`SELECT * FROM messages WHERE sender == '${self.id.toHexString()}' OR receiver == '${self.id.toHexString()}'`)
+  return el
+
+}
 
 
 export function Chat(session: ServerSession, target:string): HTMLElement {
@@ -104,12 +165,8 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
       }
 
       session.conn.reducers.onSendMessage((ctx)=>{
-
         console.log("onSendMessage", ctx.event);
-        
-        const callerid = ctx.event.callerIdentity.data;
-;
-        
+        const callerid = ctx.event.callerIdentity.data;        
         if ((callerid != self.id.data) && (callerid != person.id.data)){
           return;
         }
