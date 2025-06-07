@@ -12,10 +12,20 @@ pub enum AnimalActionType{
   Stay,
 }
 
+
+
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
 pub struct AnimalAction{
   animal: u32,
   action: AnimalActionType,
+}
+
+#[table (name = lastaction, public)]
+pub struct LastActionTime{
+  #[primary_key]
+  id: Identity,
+  timestamp: u64,
+  rolling_average: u32,
 }
 
 #[table(name = person, public)]
@@ -94,6 +104,48 @@ pub fn identity_connected(_ctx: &ReducerContext) {
 #[reducer(client_disconnected)]
 pub fn identity_disconnected(_ctx: &ReducerContext) {
   // Called everytime a client disconnects
+}
+
+
+fn check_spam(ctx: &ReducerContext) -> Result<(), String> {
+  let now : u64 = ctx.timestamp.to_micros_since_unix_epoch() as u64;
+
+  let last = ctx.db.lastaction().id().find(ctx.sender);
+    
+  match last {
+    None => {
+      let new_action = LastActionTime {
+        id: ctx.sender,
+        timestamp: now,
+        rolling_average: 1e6 as u32,
+      };
+      ctx.db.lastaction().insert(new_action);
+      Ok(())
+    }
+    Some(last_action)=>{
+
+      let delta = now - last_action.timestamp ;
+      // average micros between requests
+      let new_avg = (last_action.rolling_average * 9 + (delta as u32) * 1) / 10;
+      
+      // rate limit at 10 reqs / s
+      if new_avg < 1e6 as u32 {
+        log::info!("spam prevented");
+        Err("rate limit".to_string())
+      }else{
+        ctx.db.lastaction().id().update(LastActionTime{
+          id: ctx.sender,
+          timestamp: now,
+          rolling_average: new_avg,
+        });
+        Ok(())
+      }
+      
+    }
+  }
+
+
+
 }
 
 
@@ -179,6 +231,7 @@ pub fn reset_bank(ctx: &ReducerContext) -> Result<(), String> {
 
 #[reducer]
 pub fn sell_game_worth(ctx: &ReducerContext) -> Result<(), String> {
+  check_spam(ctx)?;
   let mut person = get_person(ctx)?;
   let game_worth = person.game_worth();
 
@@ -242,6 +295,7 @@ fn apply_animal_actions(ctx: &ReducerContext, mut player: Person, actions: Vec<A
 
 #[reducer]
 pub fn play_red(ctx: &ReducerContext) -> Result<(), String> {
+  check_spam(ctx)?;
   let person = get_person(ctx)?;
   
   let mut seed = ctx.rng();
@@ -264,6 +318,7 @@ pub fn play_red(ctx: &ReducerContext) -> Result<(), String> {
 
 #[reducer]
 pub fn play_green(ctx: &ReducerContext) -> Result<(), String> {
+  check_spam(ctx)?;
   let person = get_person(ctx)?;
   let mut seed = ctx.rng();
   let actions: Vec<AnimalAction> = person.game_state.iter().map(|x| {

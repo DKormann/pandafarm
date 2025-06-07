@@ -14,6 +14,8 @@ export {}
 
 const dbname = "pandadb2"
 const servermode : 'local'|'remote'  = 'remote';
+// const servermode : 'local'|'remote' = 'local';
+
 const dbtoken = new Stored<string>(dbname + servermode + "-token", "")
 
 const log = console.log
@@ -45,9 +47,7 @@ function requestPlayer(conn: DbConnection | SubscriptionEventContext, identity: 
 }
 
 
-
 let competition = new Writable<Person[]>([]);
-
 
 
 function onConnect(conn: DbConnection, identity: Identity,token: string,){
@@ -65,17 +65,20 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
     const writable = new Writable<Person>(player)
 
     const updatePlayer = (ctx: ReducerEventContext) => {
+      log("update", ctx.event.reducer.name, ctx.event.callerIdentity.toHexString().slice(-6))
       if (ctx.event.status.tag !== "Committed") return
       let persons = Array.from(ctx.db.person.iter())
-      competition.set(persons)
       if (ctx.event.callerIdentity.toHexString() != identity.toHexString()) return;
+      competition.set(persons)
       persons.filter((p:Person)=>p.id.toHexString() == identity.toHexString()).forEach(p=>{
       writable.set(p, true);
       })
     }
 
     conn.reducers.onPlayGreen(updatePlayer)
-    conn.reducers.onPlayRed( c=>{updatePlayer(c)})
+    conn.reducers.onPlayRed( c=>{
+      log("onred")
+      updatePlayer(c)})
     conn.reducers.onSellGameWorth(updatePlayer)
     conn.reducers.onSetPersonName(c=>{
       if (c.event.status.tag == "Failed"){

@@ -6,9 +6,19 @@ import { Person } from "./module_bindings/person_type.js";
 import { AnimalAction } from "./module_bindings/animal_action_type.js";
 
 
-// const skins = ["1","2","4","8","16","32","64","128","256","512","1024",];
 
-export const skins = ["🐭","🐹","🐱","🐶","🐻","🐯","🦁","🐼","🐸","🐲",]
+export const skins = [
+  "🐭", // 1
+  "🐹", // 2
+  "🐱", // 4
+  "🐶", // 8
+  "🐻", // 16
+  "🐯", // 32
+  "🦁", // 64
+  "🐼", // 128
+  "🐸", // 256
+  "🐲", // 512
+]
 
 export function createGame(
   player: Readable<Person>,
@@ -149,9 +159,31 @@ export function createGame(
   greenbutton.classList.add("bigbutton");
   sellbutton.classList.add("bigbutton");
 
-  redbutton.onclick = red;
-  greenbutton.onclick = green;
-  sellbutton.onclick = sell;
+
+
+  let triggered = false
+  let nextRequest : (()=>void) | null = null
+
+  const triggerRequest = (action: () => void) => {
+    if (triggered){
+      nextRequest = action 
+      return
+    }
+    triggered = true
+    action()
+    setTimeout(() => {
+      triggered = false
+      if (nextRequest){
+        triggerRequest(nextRequest)
+        nextRequest=null
+      }
+    }, 200);
+  }
+
+
+  redbutton.onclick = ()=>triggerRequest(red);
+  greenbutton.onclick = ()=>triggerRequest(green);
+  sellbutton.onclick = ()=>triggerRequest(sell);
 
 
   return game
