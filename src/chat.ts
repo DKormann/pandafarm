@@ -124,23 +124,23 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         }
       });
 
-      // type GiftOrMessage = {
-      //   type: "gift",
-      //   sender: Identity,
-      //   receiver: Identity,
-      //   animal: Number,
-      // } | {
-      //   type: "message",
-      //   sender: Identity,
-      //   receiver: Identity,
-      //   content: string,
-      // }
+      type Sendable = {
+        type: "gift",
+        sender: Identity,
+        receiver: Identity,
+        animal: number,
+      } | {
+        type: "message",
+        sender: Identity,
+        receiver: Identity,
+        content: string,
+      }
 
       type sendable = Message;
-      let messages: Writable<Message[]> = new Writable<sendable[]>([]);
+      let messages: Writable<Sendable[]> = new Writable<Sendable[]>([]);
 
 
-      messages.subscribeLater((msgs: sendable[] ) => {
+      messages.subscribeLater((msgs: Sendable[] ) => {
         messagesElement.innerHTML = "";
 
         if (msgs.length === 0) {
@@ -150,7 +150,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           }, "No messages yet.");
         }
 
-        msgs.forEach((msg: sendable) => {
+        msgs.forEach((msg: Sendable) => {
           const sender = msg.sender.data == self.id.data ? "me" : person.name
 
           createHTMLElement("p", {
@@ -159,8 +159,13 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
               class: sender == "me" ? "msg me" : "msg",
             })
           },
-            msg.content
-            // msg instanceof Message ? `${sender}: ${msg.content}` :
+
+            (msg.type === "message") ?
+              msg.content
+            :
+              skins[msg.animal]
+
+
           )
         });
         messagesElement.scrollTop = messagesElement.scrollHeight;
@@ -172,9 +177,9 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
         .onApplied(c=>{
           
-          let newMessages:Message[] = Array.from(c.db.messages.iter()) as Message[]
+          let newMessages:Sendable[] = Array.from(c.db.messages.iter()).map((msg: Message) =>({...msg, type: "message"} as Sendable));
 
-          newMessages = newMessages.filter((msg: Message) => {
+          newMessages = newMessages.filter((msg: Sendable) => {
             if (msg.sender.data == self.id.data && msg.receiver.data == person.id.data) {
               return true;
             }
@@ -199,10 +204,11 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         messages.update((msgs) => {
           return [...msgs,
             {
+              type: "message",
               sender: self.id,
               content:"sndning " + msg,
               receiver: person.id,
-            }as Message];
+            }as Sendable];
         })
         session.conn.reducers.sendMessage(person.id, msg)
       }
