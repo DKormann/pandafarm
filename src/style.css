@@ -155,14 +155,34 @@ p.leaderitem{
   text-decoration: underline;
 }
 
-/* 
-ul{
-  all:unset;
-  text-align: left;
-  padding:2em;
-  margin:2em;
-  font-size: 1.5em;;
-  margin: 2em;
-  display: inline;
 
-} */
+#chat_input{
+  height: 2em;
+  font-size: 1.5em;
+  padding: .5em;
+  margin:auto;
+  border-radius: .5em;
+  border: unset;
+  position: fixed;
+  bottom: 1em;
+  width: 90%;
+  left:5%;
+}
+
+#messages{
+  height: 80vh;
+  overflow: scroll;
+  bottom: 6em;
+  position: fixed;
+  width: 100%;
+  text-align: center;
+}
+
+#messages>p{
+  padding: 1em;
+  background-color: gray;
+  width:fit-content;
+  margin: auto;
+  margin-bottom: 1em;
+  border-radius: 1em;
+}

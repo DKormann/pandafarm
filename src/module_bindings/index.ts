@@ -46,12 +46,22 @@ import { ResetBank } from "./reset_bank_reducer.ts";
 export { ResetBank };
 import { SellGameWorth } from "./sell_game_worth_reducer.ts";
 export { SellGameWorth };
+import { SendMessage } from "./send_message_reducer.ts";
+export { SendMessage };
 import { SetPersonName } from "./set_person_name_reducer.ts";
 export { SetPersonName };
 
 // Import and reexport all table handle types
 import { GameStateTableHandle } from "./game_state_table.ts";
 export { GameStateTableHandle };
+import { GiftsTableHandle } from "./gifts_table.ts";
+export { GiftsTableHandle };
+import { LastactionTableHandle } from "./lastaction_table.ts";
+export { LastactionTableHandle };
+import { MessagesTableHandle } from "./messages_table.ts";
+export { MessagesTableHandle };
+import { PaymentsTableHandle } from "./payments_table.ts";
+export { PaymentsTableHandle };
 import { PersonTableHandle } from "./person_table.ts";
 export { PersonTableHandle };
 
@@ -62,6 +72,14 @@ import { AnimalActionType } from "./animal_action_type_type.ts";
 export { AnimalActionType };
 import { GameState } from "./game_state_type.ts";
 export { GameState };
+import { Gift } from "./gift_type.ts";
+export { Gift };
+import { LastActionTime } from "./last_action_time_type.ts";
+export { LastActionTime };
+import { Message } from "./message_type.ts";
+export { Message };
+import { Payment } from "./payment_type.ts";
+export { Payment };
 import { Person } from "./person_type.ts";
 export { Person };
 
@@ -71,6 +89,23 @@ const REMOTE_MODULE = {
       tableName: "game_state",
       rowType: GameState.getTypeScriptAlgebraicType(),
       primaryKey: "id",
+    },
+    gifts: {
+      tableName: "gifts",
+      rowType: Gift.getTypeScriptAlgebraicType(),
+    },
+    lastaction: {
+      tableName: "lastaction",
+      rowType: LastActionTime.getTypeScriptAlgebraicType(),
+      primaryKey: "id",
+    },
+    messages: {
+      tableName: "messages",
+      rowType: Message.getTypeScriptAlgebraicType(),
+    },
+    payments: {
+      tableName: "payments",
+      rowType: Payment.getTypeScriptAlgebraicType(),
     },
     person: {
       tableName: "person",
@@ -106,6 +141,10 @@ const REMOTE_MODULE = {
     sell_game_worth: {
       reducerName: "sell_game_worth",
       argsType: SellGameWorth.getTypeScriptAlgebraicType(),
+    },
+    send_message: {
+      reducerName: "send_message",
+      argsType: SendMessage.getTypeScriptAlgebraicType(),
     },
     set_person_name: {
       reducerName: "set_person_name",
@@ -145,6 +184,7 @@ export type Reducer = never
 | { name: "PlayRed", args: PlayRed }
 | { name: "ResetBank", args: ResetBank }
 | { name: "SellGameWorth", args: SellGameWorth }
+| { name: "SendMessage", args: SendMessage }
 | { name: "SetPersonName", args: SetPersonName }
 ;
 
@@ -227,6 +267,22 @@ export class RemoteReducers {
     this.connection.offReducer("sell_game_worth", callback);
   }
 
+  sendMessage(receiver: Identity, content: string) {
+    const __args = { receiver, content };
+    let __writer = new BinaryWriter(1024);
+    SendMessage.getTypeScriptAlgebraicType().serialize(__writer, __args);
+    let __argsBuffer = __writer.getBuffer();
+    this.connection.callReducer("send_message", __argsBuffer, this.setCallReducerFlags.sendMessageFlags);
+  }
+
+  onSendMessage(callback: (ctx: ReducerEventContext, receiver: Identity, content: string) => void) {
+    this.connection.onReducer("send_message", callback);
+  }
+
+  removeOnSendMessage(callback: (ctx: ReducerEventContext, receiver: Identity, content: string) => void) {
+    this.connection.offReducer("send_message", callback);
+  }
+
   setPersonName(name: string) {
     const __args = { name };
     let __writer = new BinaryWriter(1024);
@@ -271,6 +327,11 @@ export class SetReducerFlags {
     this.sellGameWorthFlags = flags;
   }
 
+  sendMessageFlags: CallReducerFlags = 'FullUpdate';
+  sendMessage(flags: CallReducerFlags) {
+    this.sendMessageFlags = flags;
+  }
+
   setPersonNameFlags: CallReducerFlags = 'FullUpdate';
   setPersonName(flags: CallReducerFlags) {
     this.setPersonNameFlags = flags;
@@ -283,6 +344,22 @@ export class RemoteTables {
 
   get gameState(): GameStateTableHandle {
     return new GameStateTableHandle(this.connection.clientCache.getOrCreateTable<GameState>(REMOTE_MODULE.tables.game_state));
+  }
+
+  get gifts(): GiftsTableHandle {
+    return new GiftsTableHandle(this.connection.clientCache.getOrCreateTable<Gift>(REMOTE_MODULE.tables.gifts));
+  }
+
+  get lastaction(): LastactionTableHandle {
+    return new LastactionTableHandle(this.connection.clientCache.getOrCreateTable<LastActionTime>(REMOTE_MODULE.tables.lastaction));
+  }
+
+  get messages(): MessagesTableHandle {
+    return new MessagesTableHandle(this.connection.clientCache.getOrCreateTable<Message>(REMOTE_MODULE.tables.messages));
+  }
+
+  get payments(): PaymentsTableHandle {
+    return new PaymentsTableHandle(this.connection.clientCache.getOrCreateTable<Payment>(REMOTE_MODULE.tables.payments));
   }
 
   get person(): PersonTableHandle {

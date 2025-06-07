@@ -328,4 +328,18 @@ pub fn play_green(ctx: &ReducerContext) -> Result<(), String> {
 }
       
 
+#[reducer]
+pub fn send_message(ctx: &ReducerContext, receiver: Identity, content: String) -> Result<(), String> {
+  check_spam(ctx)?;
+  
+  let message = Message {
+    sender: ctx.sender,
+    receiver,
+    content,
+    timestamp: ctx.timestamp.to_micros_since_unix_epoch() as u64,
+  };
+
+  ctx.db.messages().insert(message);
+  Ok(())
+}
 

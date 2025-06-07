@@ -1,0 +1,122 @@
+
+import { createHTMLElement } from "./html";
+import { ServerSession } from "./main";
+import { Person, PlayGreen } from "./module_bindings";
+import { getPersonByName } from "./server_helpers";
+import { Writable } from "./store";
+import { Message } from "./module_bindings";
+
+
+
+
+
+export function Chat(session: ServerSession, target:string): HTMLElement {
+
+  const el = createHTMLElement("div", {id: "chat"});
+
+
+  const self = session.player.get()
+
+  getPersonByName(session, target)
+    .then((person: Person) => {
+
+      createHTMLElement("h2", {parentElement: el}, `Chat with ${person.name}`);
+
+      const messagesElement = createHTMLElement("div", {parentElement: el, id: "messages"});
+
+      const message_input = createHTMLElement("textarea", {
+        parentElement: el,
+        id: "chat_input"
+      }) as HTMLTextAreaElement;
+      message_input.placeholder = "Type your message here...";
+
+      message_input.addEventListener("keydown", (event: KeyboardEvent) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          const msg = message_input.value.trim();
+          if (msg) {
+            sendMessage(msg);
+            message_input.value = "";
+          }
+        }
+      });
+
+      let messages: Writable<Message[]> = new Writable<Message[]>([]);
+
+      messages.subscribe((msgs: Message[]) => {
+        messagesElement.innerHTML = "";
+        msgs.forEach((msg: Message) => {
+          const sender = msg.sender.data == self.id.data ? "me" : person.name
+          createHTMLElement("p", {parentElement: messagesElement}, `${sender}: ${msg.content}`);
+        });
+        messagesElement.scrollTop = messagesElement.scrollHeight;
+      });
+
+      let bothids = [person.id.data, self.id.data];
+
+      const getmessages = ()=>{
+        session.conn.subscriptionBuilder()
+
+        .onApplied(c=>{
+          console.log("applie");
+          
+          let newMessages:Message[] = Array.from(c.db.messages.iter()) as Message[]
+          
+          newMessages = newMessages.filter((m:Message) => {
+            return bothids.includes(m.sender.data) && bothids.includes(self.id.data)
+          });
+
+          console.log(newMessages);
+          
+          messages.set(newMessages);
+
+        })
+        .subscribe("SELECT * FROM messages")
+
+      }
+
+      const sendMessage = (msg:string) => {
+        messages.update((msgs) => {
+          return [...msgs,
+            {
+              // sender: self.name, content: "snding"+msg
+              sender: self.id,
+              content:"sndning " + msg,
+              receiver: person.id,
+            }as Message];
+        })
+        session.conn.reducers.sendMessage(person.id, msg)
+      }
+
+      session.conn.reducers.onSendMessage((ctx)=>{
+
+        console.log("onSendMessage", ctx.event);
+        
+        const callerid = ctx.event.callerIdentity.data;
+;
+        
+        if ((callerid != self.id.data) && (callerid != person.id.data)){
+          return;
+        }
+        if (ctx.event.status.tag !== "Committed") return;
+
+        console.log("add message");
+        getmessages()
+      })
+
+      // messages.set([{sender: "System", content: "Welcome to the chat!"}]);
+
+      // sendMessage("hello")
+      getmessages()
+
+    })
+    .catch((err: Error) => {
+      console.error("Error fetching person:", err);
+      createHTMLElement("h2", {parentElement: el}, `Chat with ${target} (not found)`);
+    });
+
+
+  return el
+
+}
+

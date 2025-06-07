@@ -8,6 +8,7 @@ import { createGame } from "./online_game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
 import { UserCard } from "./user_card"
+import { Chat } from "./chat"
 
 export {}
 
@@ -180,6 +181,7 @@ function startGame(session: ServerSession){
   
   
   function loadpath(url: string){
+    log("Loading path", url);
     let path = url.split("/").filter(p => p.length > 0);
     log("Loading path", path);
     page.innerHTML = "";
@@ -193,9 +195,15 @@ function startGame(session: ServerSession){
     if (path[0] == "user"){
       if (path[1]!=undefined){
         page.appendChild(UserCard(session, path[1]));
-
+        return
+      }
+    }else if (path[0] == "chat"){
+      if (path[1] != undefined){
+        page.appendChild(Chat(session, path[1]));
+        return
       }
     }
+    page.appendChild(createHTMLElement("h1", {}, "Page not found"));
   }
 
   window.addEventListener("popstate", (event) => {
@@ -208,6 +216,7 @@ function startGame(session: ServerSession){
   
   
   session.goto = (path: string) => {goto(path); loadpath(path)};
+  head.onclick = () => session.goto("/")
 
 }
 
