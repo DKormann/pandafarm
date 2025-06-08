@@ -24,7 +24,6 @@ export function ChatSessions(session: ServerSession): HTMLElement{
     const addSession = (msg: Message) => {
       const otherId = msg.sender.data == self.id.data ? msg.receiver.toHexString() : msg.sender.toHexString();
       if (!lastmessages.has(otherId)) {
-        // sessions.push(otherId);
         lastmessages.set(otherId, msg);
       }else if (lastmessages.get(otherId)!.timestamp < msg.timestamp) {
         lastmessages.set(otherId, msg);
