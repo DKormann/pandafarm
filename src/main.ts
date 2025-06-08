@@ -211,7 +211,7 @@ function startGame(session: ServerSession){
     }else if (path[0] == "chat"){
       log(path)
       if (path[1] != undefined){
-        page.appendChild(Chat(session, path[1]));
+        page.appendChild(UserCard(session, path[1]));
         return
       }else{
         page.appendChild(ChatSessions(session));

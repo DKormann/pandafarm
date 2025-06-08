@@ -49,7 +49,7 @@ export function ChatSessions(session: ServerSession): HTMLElement{
         class: "session",
       });
       sessbutn.addEventListener("click", () => {
-        session.goto(`/chat/${p?.name ?? "Unknown"}`);
+        session.goto(`/user/${p?.name ?? "Unknown"}`);
       });
 
       createHTMLElement("p", {

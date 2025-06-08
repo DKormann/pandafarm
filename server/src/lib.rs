@@ -133,10 +133,10 @@ fn check_spam(ctx: &ReducerContext) -> Result<(), String> {
 
       let delta = now - last_action.timestamp ;
       // average micros between requests
-      let new_avg = (last_action.rolling_average * 9 + (delta as u32) * 1) / 10;
+      let new_avg = (last_action.rolling_average * 5 + (delta as u32) * 5) / 10;
       
       // rate limit at 10 reqs / s
-      if new_avg < 1e6 as u32 {
+      if new_avg < 1e5 as u32 {
         log::info!("spam prevented");
         Err("rate limit".to_string())
       }else{
