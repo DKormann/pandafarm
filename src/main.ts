@@ -9,6 +9,7 @@ import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
 // import { UserCard } from "./user_card"
 import { Chat, ChatSessions } from "./chat"
+import { getPersonByName } from "./server_helpers"
 
 export {}
 
@@ -90,11 +91,18 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
     })
     conn.reducers.onResetBank(updatePlayer)
 
-    const session: ServerSession = {
-      conn: conn,
-      player: writable,
-      goto: goto,
-    }
+    // writable.set(
+      // getPersonByName(session, session.player.get().name))
+
+      
+      const session: ServerSession = {
+        conn: conn,
+        player: writable,
+        goto: goto,
+      }
+    getPersonByName(session, session.player.get().name).then(x=>
+      writable.set(x)
+    )
     waiter.remove();
 
 
@@ -181,6 +189,7 @@ function startGame(session: ServerSession){
   })
 
   const board = createLeaderboard(session, competition);
+
 
   
   const game = createGame(

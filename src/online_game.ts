@@ -32,6 +32,8 @@ export function createGame(
   
   let game = createHTMLElement("div", { id: "game" });
 
+  
+
 
   const balanceElement = createHTMLElement("p", {parentElement: game});
   const animalsElement = createHTMLElement("div", {id: "animals", parentElement: game});
