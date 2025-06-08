@@ -25,7 +25,7 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         input: {
           main : "index.html",
-          notFound: "index.html",
+          notFound: "404.html",
         },
         output: {
           entryFileNames: 'assets/[name].[hash].js',
