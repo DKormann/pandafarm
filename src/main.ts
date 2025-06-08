@@ -7,7 +7,7 @@ import { DbConnection, ErrorContext, Person, ReducerEventContext, SubscriptionEv
 import { createGame } from "./online_game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
-import { UserCard } from "./user_card"
+// import { UserCard } from "./user_card"
 import { Chat, ChatSessions } from "./chat"
 
 export {}
@@ -118,17 +118,17 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
 
 }
 
-const head = createHTMLElement("h2", {
-  parentElement:document.body,
-  id:"head",
-}, "🏠 Panda Farm")
+
+
+
+
 
 
 const waiter = createHTMLElement("h1", {parentElement:document.body}, "Waiting for connection...");
 
-
-const navbar = createHTMLElement("nav", {id:"navbar", parentElement:document.body});
-
+const head = createHTMLElement("div", {parentElement:document.body, id:"head"})
+const title = createHTMLElement("h2", {parentElement:head, id:"title", }, "🏠 Panda Farm")
+const navbar = createHTMLElement("nav", {parentElement:head, id:"navbar"});
 
 const page = createHTMLElement("div", {id:"page", parentElement:document.body});
 
@@ -167,8 +167,6 @@ function goto(url:string){
 
 
 function startGame(session: ServerSession){
-  
-  
 
   session.player.subscribe(p=>{
     if (p.highscore != session.player.get().highscore){
@@ -191,27 +189,44 @@ function startGame(session: ServerSession){
     ()=>session.conn.reducers.playRed(),
     ()=>session.conn.reducers.playGreen(),
   );
+
+  
+
+
+  const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
+  homebutn.onclick = () => {
+    session.goto("/")
+  }
+
+  const msgbutn = createHTMLElement("span", {parentElement:navbar, id:"msgbutn"}, "messages")
+  msgbutn.onclick = () => {
+    session.goto("/chat")
+  }
+
   
   
   function loadpath(url: string){
     let path = url.split("/").filter(p => p.length > 0);
+    navbar.querySelectorAll(".active").forEach(el => el.classList.remove("active"));
+
     page.innerHTML = "";
     if (path[0] == "pandafarm") path = path.slice(1);
     if (path[0] == "local") path = path.slice(1);
     if (path.length == 0){
+      homebutn.classList.add("active");
       page.appendChild(game);
       page.appendChild(board);
       return;
     }
     if (path[0] == "user"){
       if (path[1]!=undefined){
-        page.appendChild(UserCard(session, path[1]));
+        page.appendChild(Chat(session, path[1]));
         return
       }
     }else if (path[0] == "chat"){
-      log(path)
+      msgbutn.classList.add("active");
       if (path[1] != undefined){
-        page.appendChild(UserCard(session, path[1]));
+        page.appendChild(Chat(session, path[1]));
         return
       }else{
         page.appendChild(ChatSessions(session));
@@ -231,22 +246,7 @@ function startGame(session: ServerSession){
   
   
   session.goto = (path: string) => {goto(path); loadpath(path)};
-  head.onclick = () => session.goto("/")
-
-  const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
-  homebutn.onclick = () => {
-    navbar.querySelectorAll(".active").forEach(el => el.classList.remove("active"));
-    homebutn.classList.add("active");
-    session.goto("/")
-  }
-
-  const msgbutn = createHTMLElement("span", {parentElement:navbar, id:"msgbutn"}, "messages")
-  msgbutn.onclick = () => {
-    navbar.querySelectorAll(".active").forEach(el => el.classList.remove("active"));
-    msgbutn.classList.add("active");
-    session.goto("/chat")
-  }
-
+  title.onclick = () => session.goto("/")
 
 
 }

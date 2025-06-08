@@ -4,9 +4,10 @@ import { ServerSession } from "./main";
 import { Gift, Person, PlayGreen } from "./module_bindings";
 import { getPersonByName } from "./server_helpers";
 import { Writable } from "./store";
-import { Message } from "./module_bindings";
+import { Message , ReducerEventContext} from "./module_bindings";
 import { Identity } from "@clockworklabs/spacetimedb-sdk";
 import { skins } from "./online_game";
+
 
 
 
@@ -18,7 +19,6 @@ export function ChatSessions(session: ServerSession): HTMLElement{
 
   session.conn.subscriptionBuilder()
   .onApplied((ctx) => {
-    // const sessions: string[] = [];
     const lastmessages: Map<string, Message> = new Map();
 
     const addSession = (msg: Message) => {
@@ -72,6 +72,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
   const el = createHTMLElement("div", {id: "chat"});
 
+  el.appendChild(createHTMLElement("h2", {id: "user_card"}, `Chat with ${target}`));
 
   const self = session.player.get()
 
@@ -80,30 +81,30 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
       const messagesElement = createHTMLElement("div", {parentElement: el, id: "messages"});
 
-      // const giftbutton = createHTMLElement("button", {
-      //   parentElement: el,
-      //   id: "gift_button"
-      // }, "🎁");
+      const giftbutton = createHTMLElement("button", {
+        parentElement: el,
+        id: "gift_button"
+      }, "🎁");
 
-      // giftbutton.addEventListener("click", () => {
-      //   const dialog = Dialog();
-      //   createHTMLElement("h2", {parentElement: dialog}, `Send a gift to ${person.name}`);
+      giftbutton.addEventListener("click", () => {
+        const dialog = Dialog();
+        createHTMLElement("h2", {parentElement: dialog}, `Send a gift to ${person.name}`);
 
-      //   for (let i = 1; i <= 10; i++) {
-      //     const button = createHTMLElement("p", {
-      //       parentElement: dialog,
-      //       class: "gift_button option"
-      //     }, `${skins[i-1]} ${2**(i-1)}$`);
+        for (let i = 1; i <= 10; i++) {
+          const button = createHTMLElement("p", {
+            parentElement: dialog,
+            class: "gift_button option"
+          }, `${skins[i-1]} ${2**(i-1)}$`);
 
-      //     button.addEventListener("click", () => {
-      //       // session.conn.reducers.sendGift(person.id, i);
-      //       dialog.remove();
-      //     });
-      //   }
+          button.addEventListener("click", () => {
+            session.conn.reducers.sendGift(person.id, i);
+            dialog.remove();
+          });
+        }
 
-      //   // el.appendChild(dialog);
+        // el.appendChild(dialog);
 
-      // });
+      });
       
 
       const message_input = createHTMLElement("textarea", {
@@ -117,7 +118,8 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           event.preventDefault();
           const msg = message_input.value.trim();
           if (msg) {
-            sendMessage(msg);
+            // sendMessage(msg);
+            session.conn.reducers.sendMessage(person.id, msg);
             message_input.value = "";
           }
         }
@@ -128,11 +130,13 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         sender: Identity,
         receiver: Identity,
         animal: number,
+        timestamp: BigInt,
       } | {
         type: "message",
         sender: Identity,
         receiver: Identity,
         content: string,
+        timestamp: BigInt,
       }
 
       type sendable = Message;
@@ -163,68 +167,54 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
               msg.content
             :
               skins[msg.animal]
-
-
           )
         });
         messagesElement.scrollTop = messagesElement.scrollHeight;
       });
 
-
-      const getmessages = ()=>{
+      const requestSendables = (type: "gifts" | "messages") =>
+       new Promise((resolve, reject) => {
         session.conn.subscriptionBuilder()
-
-        .onApplied(c=>{
-          
-          let newMessages:Sendable[] = Array.from(c.db.messages.iter()).map((msg: Message) =>({...msg, type: "message"} as Sendable));
-
-          newMessages = newMessages.filter((msg: Sendable) => {
-            if (msg.sender.data == self.id.data && msg.receiver.data == person.id.data) {
-              return true;
-            }
-            if (msg.sender.data == person.id.data && msg.receiver.data == self.id.data) {
-              return true;
-            }
-            return false;
-          });
-
-
-          console.log(newMessages);          
-          messages.set(newMessages);
-
-        })
-        .subscribe(`SELECT * FROM messages WHERE
-          ((sender == '${self.id.toHexString()}' AND receiver == '${person.id.toHexString()}')
-        OR (sender == '${person.id.toHexString()}' AND receiver == '${self.id.toHexString()}'))`)
-
-      }
-
-      const sendMessage = (msg:string) => {
-        messages.update((msgs) => {
-          return [...msgs,
-            {
-              type: "message",
-              sender: self.id,
-              content:"sndning " + msg,
-              receiver: person.id,
-            }as Sendable];
-        })
-        session.conn.reducers.sendMessage(person.id, msg)
-      }
-
-      session.conn.reducers.onSendMessage((ctx)=>{
-        console.log("onSendMessage", ctx.event);
-        const callerid = ctx.event.callerIdentity.data;        
-        if ((callerid != self.id.data) && (callerid != person.id.data)){
-          return;
-        }
-        if (ctx.event.status.tag !== "Committed") return;
-
-        console.log("add message");
-        getmessages()
+          .onApplied((ctx)=>resolve(ctx))
+          .onError(e=>reject(e))
+          .subscribe(`SELECT * FROM ${type} WHERE
+            ((sender == '${self.id.toHexString()}' AND receiver == '${person.id.toHexString()}')
+          OR (sender == '${person.id.toHexString()}' AND receiver == '${self.id.toHexString()}'))`)
       })
 
-      getmessages()
+      const checkCtx = (ctx: ReducerEventContext) =>
+        ctx.event.status.tag === "Committed" && 
+        (ctx.event.callerIdentity.data === self.id.data || ctx.event.callerIdentity.data === person.id.data);
+      
+      const updateMessages = () =>{
+        let newMessages = Array.from(session.conn.db.messages.iter()).map((msg: Message) => ({...msg, type: "message"} as Sendable));
+        newMessages = newMessages.concat(Array.from(session.conn.db.gifts.iter()).map((gift: Gift) => ({...gift, type: "gift"} as Sendable)));
+        const [sid, oid] = [self.id.data, person.id.data];
+        newMessages = newMessages.filter((msg: Sendable) => (msg.sender.data === sid && msg.receiver.data === oid) || (msg.receiver.data === sid && msg.sender.data === oid));
+        newMessages = newMessages.sort((a, b) => (a.timestamp > b.timestamp) ? 1 : -1);
+        messages.set(newMessages);
+      }
+
+      session.conn.reducers.onSendGift((ctx) => {
+        if (checkCtx(ctx)) {
+          updateMessages();
+        }
+      });
+
+      session.conn.reducers.onSendMessage((ctx) => {
+        if (checkCtx(ctx)) {
+          updateMessages();
+        }
+      });
+
+      (async()=>{
+        await requestSendables("messages")
+        await requestSendables("gifts") 
+        updateMessages()
+        
+      })()
+
+      // getmessages()
 
     })
     .catch((err: Error) => {

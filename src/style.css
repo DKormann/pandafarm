@@ -26,12 +26,42 @@ body{
 }
 
 #head{
+  top:0;
   cursor: pointer;
+  position: fixed;
+  width:100vw;
+  background-color: #333;
+  z-index: 1000;
+  /* height: 4em; */
 }
 
-#head:hover{
-  text-decoration: underline;
+#page{
+  padding-top: 8em;
+  height: calc(100vh - 8em);
+  width:100vw;
+  overflow: scroll;
+  position: absolute;
+}
 
+
+#chat{
+  position: fixed;
+  top:0;
+  padding-top:8em;
+  height: calc(100vh - 10em);
+  width: 100%;
+}
+
+
+#messages{
+  height: calc(100vh - 17em);
+  overflow: scroll;
+  text-align: center;
+}
+
+
+#title:hover{
+  text-decoration: underline;
 }
 
 #navbar{
@@ -48,7 +78,6 @@ body{
 #navbar>*.active{
   color:var(--color)
 }
-
 
 #game{
   width:100%;
@@ -127,8 +156,6 @@ h1{
 
 }
 
-
-
 .animal.dead{
   transition: .5s;
   font-size: 0;
@@ -146,14 +173,14 @@ h1{
   100% { transform: scale(1); }
 }
 
-
 .hidden{
   display: none;
 }
 
 div.leaderboard{
-  margin-top: 10em;
+  margin-top: 5em;
   width: 100%;
+  margin-bottom: 5em;
 }
 
 p.leaderitem{
@@ -168,13 +195,13 @@ p.leaderitem{
   white-space: wrap;
   text-wrap:wrap;
   overflow: hidden;
+  cursor: pointer;
 
 }
 
 .leaderitem:nth-child(even) {
   background-color: rgba(100,100,100, 0.2);
 }
-
 
 .nametag{
   font-size: 1.2em;
@@ -189,11 +216,6 @@ p.leaderitem{
 .nametag:hover{
   /* background-color: rgba(73, 46, 42, 0.169); */
   text-decoration: underline;
-}
-
-#chat{
-  padding-top: 4em;
-  margin-bottom: 6em;
 }
 
 #chat_input{
@@ -223,7 +245,6 @@ p.leaderitem{
   border:1px solid gold;
 }
 
-
 .prompt_window{
   position: fixed;
   padding: 0;
@@ -234,7 +255,6 @@ p.leaderitem{
   left: 0;
   background-color: #5d5d5d8a;
 }
-
 
 .prompt_window>div{
   background-color: var(--bg);
@@ -258,14 +278,11 @@ p.leaderitem{
   /* text-decoration: underline; */
 }
 
-#messages{
-  height: 80vh;
-  overflow: scroll;
-  bottom: 6em;
-  /* position: fixed; */
-  width: 100vw;
+#user_card{
+  margin-top: 0em;
   text-align: center;
 }
+
 .msg{
   padding: 0;
   width:100%;
