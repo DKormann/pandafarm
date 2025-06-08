@@ -314,7 +314,7 @@ p.leaderitem{
 
 .gift.me>p, .gift>p{
   background-color: transparent;
-  font-size: 3;
+  font-size: 3em;
   padding:0;
   text-shadow: 0 0 10px gold;
 }
