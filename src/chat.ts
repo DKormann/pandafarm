@@ -74,6 +74,29 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
 
   el.appendChild(createHTMLElement("h2", {id: "user_card"}, `Chat with ${target}`));
 
+
+
+  session.conn.subscriptionBuilder()
+  .onApplied(c=>{
+    for (let person of c.db.person.iter()){
+      if (person.name === target) {
+
+        // const head = createHTMLElement("div", { parentElement:el});
+        // createHTMLElement("span", {style: "font-size: 1.5em;", parentElement:head}, `@${person.name} `);
+
+        createHTMLElement("p", {parentElement:el}, `bank: ${person.bank}$, highscore: ${person.highscore}$ ${person.highscoreState.reduce((acc:string, curr:number) => acc + skins[curr], "")}, Game: ${person.gameState.reduce((acc:string, curr:number) => acc + skins[curr], "")}`);
+
+        // el.appendChild(Chat(session, person.name))
+
+      }
+    }
+  })
+  .subscribe(`SELECT * FROM person WHERE name == '${target}'`);
+
+
+
+
+
   const self = session.player.get()
 
   getPersonByName(session, target)
@@ -90,11 +113,11 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         const dialog = Dialog();
         createHTMLElement("h2", {parentElement: dialog}, `Send a gift to ${person.name}`);
 
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 0; i <= 9; i++) {
           const button = createHTMLElement("p", {
             parentElement: dialog,
             classList: "gitf_button",
-          }, `${skins[i-1]} ${2**(i-1)}$`);
+          }, `${skins[i]} ${2**(i)}$`);
 
           button.addEventListener("click", () => {
             session.conn.reducers.sendGift(person.id, i);

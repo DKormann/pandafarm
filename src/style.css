@@ -54,7 +54,7 @@ body{
 
 
 #messages{
-  height: calc(100vh - 17em);
+  height: calc(100vh - 20em);
   overflow: scroll;
   text-align: center;
 }
@@ -316,6 +316,7 @@ p.leaderitem{
   background-color: transparent;
   font-size: 3em;
   padding:0;
+  margin:.2em;
   text-shadow: 0 0 10px gold;
 }
 

@@ -27,6 +27,7 @@ pub struct LastActionTime{
 }
 
 #[table(name = person, public)]
+#[derive(Clone)]
 pub struct Person {
   #[primary_key]
   id:Identity,
@@ -366,11 +367,13 @@ pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Resul
   }
 
   sender.bank -= price;
-  ctx.db.person().id().update(sender);
-  let mut receiver = ctx.db.person().id().find(receiver).unwrap();
-  // receiver.bank += price;
-  receiver.game_state.push(animal);
 
+  ctx.db.person().id().update(sender);
+
+
+  let mut receiver = ctx.db.person().id().find(receiver).unwrap();
+
+  receiver.game_state.push(animal);
 
   let gift = Gift {
     sender: ctx.sender,
@@ -378,6 +381,11 @@ pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Resul
     animal,
     timestamp: ctx.timestamp.to_micros_since_unix_epoch() as u64,
   };
+
+  // log::info!("Sending gift from {} to {}", ctx.sender, receiver.clone().to_string());
+
+
+  ctx.db.person().id().update(receiver);
 
   ctx.db.gifts().insert(gift);
   Ok(())
