@@ -15,7 +15,7 @@ body{
   /* user-select: none; */
 }
 
-
+/* 
 @media (prefers-color-scheme: light) {
   body {
     background-color: #fff;
@@ -23,7 +23,7 @@ body{
     --color : #333;
     --bg : #fff;
   }
-}
+} */
 
 #head{
   top:0;
