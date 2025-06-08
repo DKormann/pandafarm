@@ -368,7 +368,8 @@ pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Resul
   sender.bank -= price;
   ctx.db.person().id().update(sender);
   let mut receiver = ctx.db.person().id().find(receiver).unwrap();
-  receiver.bank += price;
+  // receiver.bank += price;
+  receiver.game_state.push(animal);
 
 
   let gift = Gift {

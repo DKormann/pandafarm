@@ -254,6 +254,7 @@ p.leaderitem{
   top: 0;
   left: 0;
   background-color: #5d5d5d8a;
+  z-index: 2000;
 }
 
 .prompt_window>div{
@@ -311,6 +312,13 @@ p.leaderitem{
   background-color: rgb(76, 171, 71);
 }
 
+.gift.me>p, .gift>p{
+  background-color: transparent;
+  font-size: 3;
+  padding:0;
+  text-shadow: 0 0 10px gold;
+}
+
 .session{
   /* width: 100%; */
   text-align: left;
@@ -324,3 +332,4 @@ p.leaderitem{
 .session_tag{
   font-weight: bold;
 }
+

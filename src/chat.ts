@@ -93,7 +93,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         for (let i = 1; i <= 10; i++) {
           const button = createHTMLElement("p", {
             parentElement: dialog,
-            class: "gift_button option"
+            classList: "gitf_button",
           }, `${skins[i-1]} ${2**(i-1)}$`);
 
           button.addEventListener("click", () => {
@@ -102,7 +102,6 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           });
         }
 
-        // el.appendChild(dialog);
 
       });
       
@@ -118,7 +117,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           event.preventDefault();
           const msg = message_input.value.trim();
           if (msg) {
-            // sendMessage(msg);
+
             session.conn.reducers.sendMessage(person.id, msg);
             message_input.value = "";
           }
@@ -159,7 +158,8 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
           createHTMLElement("p", {
             parentElement: createHTMLElement("p", {
               parentElement: messagesElement,
-              class: sender == "me" ? "msg me" : "msg",
+              class: (sender == "me" ? "msg me" : "msg") + (msg.type === "gift" ? " gift" : "")
+              ,
             })
           },
 
