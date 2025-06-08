@@ -54,10 +54,13 @@ body{
 
 
 #messages{
-  height: calc(100vh - 20em);
+  height: calc(100vh - 30em);
   overflow: scroll;
   text-align: center;
+  padding-bottom: 10em;
 }
+
+
 
 
 #title:hover{
@@ -292,6 +295,9 @@ p.leaderitem{
   flex-direction: column;
   align-items: flex-start;
 }
+
+/* last msg item */
+
 
 .msg.me{
   color: white;
