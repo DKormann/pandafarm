@@ -142,8 +142,9 @@ export function createGame(session:ServerSession){
         sellbutton.classList.remove("active");
       }
 
-    }
+      sellbutton.textContent = `Collect ${worth}$`;
 
+    }
 
 
     balanceElement.textContent = `bank: ${newplayer.bank}$`;
@@ -172,7 +173,6 @@ export function createGame(session:ServerSession){
       newplayer.highscoreState.reduce((acc, curr) => acc + skins[curr], "")
     }`
 
-    sellbutton.textContent = `Collect ${newplayer.gameState.reduce((acc, curr) => acc + 2 ** curr, 0)}$`;
   })
 
 

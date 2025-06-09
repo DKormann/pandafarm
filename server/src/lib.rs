@@ -300,7 +300,11 @@ pub fn play_red(ctx: &ReducerContext) -> Result<(), String> {
     AnimalAction{
       animal: *x,
       action: if rng == 0 {
-        AnimalActionType::Levelup
+        if (*x) < MAXLEVEL {
+          AnimalActionType::Levelup
+        }else{
+          AnimalActionType::Levelup
+        }
       }else if rng == 1{
         AnimalActionType::Stay
       }else{

@@ -56,10 +56,10 @@ export function requestPlayerId(conn: DbConnection, id:Identity) {
 
 
 export function requestSql(conn: DbConnection, query: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise<SubscriptionEventContext>((resolve, reject) => {
     conn.subscriptionBuilder()
     .onApplied((ctx: SubscriptionEventContext) => {
-      resolve(null);
+      resolve(ctx);
     })
     .onError((error) => {
       console.error("Error in requestSql:", error);
@@ -71,6 +71,7 @@ export function requestSql(conn: DbConnection, query: string) {
 export function requestCompetition(conn: DbConnection) {
   return requestPerson(conn, `SELECT * FROM person WHERE highscore > 0`);
 }
+
 
 
 
