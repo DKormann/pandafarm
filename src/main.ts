@@ -71,7 +71,7 @@ function ConnectServer(){
 
     const playerWriter = new Writable<Person>(player);
     const competitionWriter = new Writable<Person[]>([]);
-    
+    await requestCompetition(conn)
     const updateCompetition = ()=>{
       competitionWriter.set(Array.from(conn.db.person.iter()).filter(p => p.highscore > 0).sort((a, b) => b.highscore - a.highscore))
     }
@@ -84,8 +84,9 @@ function ConnectServer(){
         log("Error updating player", e);
         panic("Error updating player: " + e.message);
       })
-
     }
+
+    dbtoken.set(token);
 
 
 
@@ -118,9 +119,7 @@ function ConnectServer(){
     
     loadPage(session);
     
-    // setTimeout(() => {
-    //   session.conn.disconnect();
-    // }, 1000)
+
   })
   .onConnectError((ctx: ErrorContext, error: Error) =>{  
     log("onConnectError", error)

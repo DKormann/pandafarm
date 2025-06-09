@@ -14,11 +14,14 @@ import { requestPerson, requestPlayerId, requestPlayerName } from "./server_help
 
 
 export function ChatSessions(session: ServerSession): HTMLElement{
+
+
   const el = createHTMLElement("div", {id: "chat_sessions"});
 
   const self = session.player.get();
 
   session.conn.subscriptionBuilder()
+
   .onApplied((ctx) => {
     const lastmessages: Map<string, Message> = new Map();
 
@@ -76,10 +79,12 @@ export function Chat(session: ServerSession, target: string): HTMLElement {
 
   const self = session.player.get()
   const messagesElement = createHTMLElement("div", {id: "messages", parentElement: el});
+  console.log(target);
+  
 
   requestPlayerName(session.conn, target)
     .then((person) => {
-
+      console.log("Chat with person:", person.name, "id:", person.id.toHexString());
 
       const info = card.appendChild(createHTMLElement("p", {}, ""));
       session.competition.subscribe((competition) => {
@@ -144,10 +149,7 @@ export function Chat(session: ServerSession, target: string): HTMLElement {
         timestamp: BigInt,
       }
 
-      type sendable = Message;
       let messages: Writable<Sendable[]> = new Writable<Sendable[]>([]);
-
-
       messages.subscribeLater((msgs: Sendable[] ) => {
         messagesElement.innerHTML = "";
 
@@ -193,13 +195,57 @@ export function Chat(session: ServerSession, target: string): HTMLElement {
         (ctx.event.callerIdentity.data === self.id.data || ctx.event.callerIdentity.data === person.id.data);
       
       const updateMessages = () =>{
+        console.log("Updating messages for chat with", person.name);
+        console.log(Array.from(session.conn.db.messages.iter()));
+        
         let newMessages = Array.from(session.conn.db.messages.iter()).map((msg: Message) => ({...msg, type: "message"} as Sendable));
         newMessages = newMessages.concat(Array.from(session.conn.db.gifts.iter()).map((gift: Gift) => ({...gift, type: "gift"} as Sendable)));
         const [sid, oid] = [self.id.data, person.id.data];
-        newMessages = newMessages.filter((msg: Sendable) => (msg.sender.data === sid && msg.receiver.data === oid) || (msg.receiver.data === sid && msg.sender.data === oid));
+
+
+        newMessages = newMessages.filter((msg: Sendable) => 
+        {
+          if (msg.type === "gift") {
+            // console.log("Gift message:", msg);
+          } else {
+            console.log("Chat message:", msg.content,
+              msg.sender.data == oid
+            );
+
+          }
+
+          
+          return (msg.sender.data === sid && msg.receiver.data === oid) 
+          ||
+          (msg.receiver.data === sid && msg.sender.data === oid)
+        }
+        );
+
+
         newMessages = newMessages.sort((a, b) => (a.timestamp > b.timestamp) ? 1 : -1);
         messages.set(newMessages);
       }
+
+      session.conn.subscriptionBuilder()
+      .onApplied((ctx: ReducerEventContext) => {
+        console.log("Chat subscription applied:", 
+          Array.from(ctx.db.messages.iter())
+        );
+        updateMessages();
+      })
+      .onError((error) => {
+        console.error("Error in chat subscription:", error);
+      })
+      .subscribe(`SELECT * FROM messages`)
+      // WHERE
+      //   ((sender == '${self.id.toHexString()}' AND receiver == '${person.id.toHexString()}')
+      //   OR (sender == '${person.id.toHexString()}' AND receiver == '${self.id.toHexString()}'))`)
+
+      session.conn.reducers.onSendMessage(c=>{
+        if (checkCtx(c)) {
+          updateMessages();
+        }
+      })
 
       session.conn.reducers.onSendGift((ctx) => {
         if (checkCtx(ctx)) {
