@@ -27,6 +27,7 @@ export type ServerSession = {
   conn: DbConnection,
   player: Readable<Person>,
   goto: (path:string) => void,
+  updatePlayer: (force?: boolean) => void,
 }
 
 log(window.location.pathname)
@@ -53,7 +54,11 @@ function requestPlayer(conn: DbConnection | SubscriptionEventContext, identity: 
 let competition = new Writable<Person[]>([]);
 
 
-function onConnect(conn: DbConnection, identity: Identity,token: string,){
+function findplayername(conn: DbConnection, identity: Identity){
+  return conn.db.person.id.find(identity)?.name ?? "Unknown Player";
+}
+
+function onConnect(conn: DbConnection, identity: Identity, token: string,){
 
   dbtoken.set(token);
   // updateCompetition(conn);
@@ -68,7 +73,8 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
     const writable = new Writable<Person>(player)
 
     const updatePlayer = (ctx: ReducerEventContext) => {
-      log("update", ctx.event.reducer.name, ctx.event.callerIdentity.toHexString().slice(-6))
+      log("update", ctx.event.reducer.name, findplayername(conn, ctx.event.callerIdentity));
+
       if (ctx.event.status.tag !== "Committed") return
       let persons = Array.from(ctx.db.person.iter())
       if (ctx.event.callerIdentity.toHexString() != identity.toHexString()) return;
@@ -78,28 +84,30 @@ function onConnect(conn: DbConnection, identity: Identity,token: string,){
       })
     }
 
-    conn.reducers.onPlayGreen(updatePlayer)
-    conn.reducers.onPlayRed( c=>{
-      log("onred")
-      updatePlayer(c)})
-    conn.reducers.onSellGameWorth(updatePlayer)
+    const getPlayerUpdate = (session: ServerSession, force = false) => {
+      requestPlayer(session.conn, identity, (player: Person) => {
+        writable.set(player, force);
+      }, () => {
+        log("Failed to get player update", session.player.get().id.toHexString());
+      });
+    }
+
     conn.reducers.onSetPersonName(c=>{
-      if (c.event.status.tag == "Failed"){
-        alert("Failed to set name: " + c.event.status.value);
-      }
       updatePlayer(c);
     })
-    conn.reducers.onResetBank(updatePlayer)
 
-    // writable.set(
-      // getPersonByName(session, session.player.get().name))
+    conn.reducers.onSendGift(c=>{
+      log("Gift sent by player", findplayername(conn, c.event.callerIdentity));
+      log(c.event.reducer.args)
+      getPlayerUpdate(session, false);
+    })
 
-      
-      const session: ServerSession = {
-        conn: conn,
-        player: writable,
-        goto: goto,
-      }
+    const session: ServerSession = {
+      conn: conn,
+      player: writable,
+      goto: goto,
+      updatePlayer: (force = false) => getPlayerUpdate(session, force),
+    }
     getPersonByName(session, session.player.get().name).then(x=>
       writable.set(x)
     )
@@ -146,7 +154,6 @@ const serverurl = (servermode == 'local') ? "ws://localhost:3000" : "wss://mainc
 function ConnectServer(){
 
   return DbConnection.builder()
-  // @ts-ignore
   .withUri(serverurl)
   .withModuleName(dbname)
   .withToken(dbtoken.get())
@@ -176,27 +183,36 @@ function goto(url:string){
 
 function startGame(session: ServerSession){
 
-  session.player.subscribe(p=>{
-    if (p.highscore != session.player.get().highscore){
-      log("Highscore updated", p.highscore);
-    }
-    if (p.bank == 0){
+  function checkZero(){
+    if (session.player.get().bank == 0){
       let pr = window.prompt("You have no money left, say please to get more");
-      if (pr && pr.length >0){
+      if (pr && pr.length > 0){
         session.conn.reducers.resetBank();
+        session.updatePlayer(true);
       }
     }
-  })
+  }
+
+  checkZero();
 
   const board = createLeaderboard(session, competition);
 
-
-  
   const game = createGame(
     session.player,
-    ()=>session.conn.reducers.sellGameWorth(),
-    ()=>session.conn.reducers.playRed(),
-    ()=>session.conn.reducers.playGreen(),
+    ()=>{
+      session.conn.reducers.sellGameWorth()
+      session.updatePlayer(true)
+    },
+    ()=>{
+      session.conn.reducers.playRed()
+      session.updatePlayer(true)
+      checkZero();
+    },
+    ()=>{
+      session.conn.reducers.playGreen()
+      session.updatePlayer(true)
+      checkZero();
+    },
   );
 
   

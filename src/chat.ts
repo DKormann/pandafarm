@@ -81,13 +81,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
     for (let person of c.db.person.iter()){
       if (person.name === target) {
 
-        // const head = createHTMLElement("div", { parentElement:el});
-        // createHTMLElement("span", {style: "font-size: 1.5em;", parentElement:head}, `@${person.name} `);
-
         createHTMLElement("p", {parentElement:el}, `bank: ${person.bank}$, highscore: ${person.highscore}$ ${person.highscoreState.reduce((acc:string, curr:number) => acc + skins[curr], "")}, Game: ${person.gameState.reduce((acc:string, curr:number) => acc + skins[curr], "")}`);
-
-        // el.appendChild(Chat(session, person.name))
-
       }
     }
   })
@@ -236,8 +230,6 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         updateMessages()
         
       })()
-
-      // getmessages()
 
     })
     .catch((err: Error) => {
