@@ -10,9 +10,6 @@ import { skins } from "./game";
 import { requestPerson, requestPlayerId, requestPlayerName } from "./server_helpers";
 
 
-
-
-
 export function ChatSessions(session: ServerSession): HTMLElement{
 
   const el = createHTMLElement("div", {id: "chat_sessions"});
