@@ -55,25 +55,16 @@ function ConnectServer(){
   .withToken(dbtoken.get())
   .onConnect(async (conn: DbConnection, identity: Identity, token: string) => {
     await requestCompetition(conn)
-    // await requestPlayerId(conn, identity)
-    // let player = conn.db.person.id.find(identity)
-    // if (!player){
-    //   conn.reducers.createPerson()
-    //   log("No player found, creating new player");
-    //   await requestPlayerId(conn, identity);
-    //   player = conn.db.person.id.find(identity);
-    //   if (!player) {
-    //     panic("Error: Player not created");
-    //     return;
-    //   }
-    // }
 
     const player = await requestPlayerId(conn, identity)
     .catch(async e => {
-      log("Error requesting player by id", e);
+      log("No player found, creating new player", e);
       conn.reducers.createPerson();
-      return await requestPlayerId(conn, identity);
-
+      return await requestPlayerId(conn, identity)
+      .catch(e => {
+        panic("Error: Player not created: " + e.message);
+        throw e;
+      });
     })
 
     log("Connected as", player.name, "with id", player.id.toHexString());
@@ -85,15 +76,10 @@ function ConnectServer(){
       competitionWriter.set(Array.from(conn.db.person.iter()).filter(p => p.highscore > 0).sort((a, b) => b.highscore - a.highscore))
     }
 
-    const updatePlayer = (force: boolean = false) =>{
-      return requestPlayerId(conn, player.id).then(() => {
+    const updatePlayer = (force: boolean = false) => 
+      requestPlayerId(conn, player.id).then(() => {
         playerWriter.set(conn.db.person.id.find(player.id)!, force)
       })
-      .catch(e=>{
-        log("Error updating player", e);
-        panic("Error updating player: " + e.message);
-      })
-    }
 
     dbtoken.set(token);
 

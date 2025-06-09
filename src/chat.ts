@@ -15,16 +15,14 @@ import { requestPerson, requestPlayerId, requestPlayerName } from "./server_help
 
 export function ChatSessions(session: ServerSession): HTMLElement{
 
-
   const el = createHTMLElement("div", {id: "chat_sessions"});
-
   const self = session.player.get();
-
   session.conn.subscriptionBuilder()
+
+  
 
   .onApplied((ctx) => {
     const lastmessages: Map<string, Message> = new Map();
-
     const addSession = (msg: Message) => {
       const otherId = msg.sender.data == self.id.data ? msg.receiver.toHexString() : msg.sender.toHexString();
       if (!lastmessages.has(otherId)) {
@@ -99,6 +97,10 @@ export function Chat(session: ServerSession, target: string): HTMLElement {
         parentElement: el,
         id: "gift_button"
       }, "🎁");
+      const sendbutton = createHTMLElement("button", {
+        parentElement: el,
+        id: "send_button"
+      }, "");
 
       giftbutton.addEventListener("click", () => {
         const dialog = Dialog();
@@ -114,6 +116,14 @@ export function Chat(session: ServerSession, target: string): HTMLElement {
             session.conn.reducers.sendGift(person.id, i);
             dialog.remove();
           });
+        }
+      });
+
+      sendbutton.addEventListener("click", () => {
+        const msg = message_input.value.trim();
+        if (msg) {
+          session.conn.reducers.sendMessage(person.id, msg);
+          message_input.value = "";
         }
       });
       

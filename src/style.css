@@ -234,10 +234,9 @@ p.leaderitem{
   margin:auto;
   border-radius: .5em;
   border: unset;
-  position: fixed;
-  bottom: 1em;
-  width: calc(100vw - 7em);
-  left:4em;
+  position: static;
+  bottom: .5em;
+  width: calc(100vw - 8em);
 }
 
 #gift_button{
@@ -250,8 +249,27 @@ p.leaderitem{
   left:.5em;
   width:2em;
   border:unset;
-  background-color: transparent;
-  border:1px solid gold;
+  background-color: gold;
+  /* border:1px solid gold;  */
+
+}
+
+#send_button{
+  position: fixed;
+  font-size: 1.5em;
+  padding:.5em;
+  height:2em;
+  border-radius: .5em;
+  bottom:1em;
+  right:.5em;
+  width:2em;
+  border:unset;
+  background-color: rgb(71, 104, 170);
+
+  width:2em;
+  background-image: url("/static/send.png");
+  background-size: cover;
+
 }
 
 .prompt_window{
