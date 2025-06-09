@@ -234,8 +234,9 @@ p.leaderitem{
   margin:auto;
   border-radius: .5em;
   border: unset;
-  position: static;
+  position: fixed;
   bottom: .5em;
+  left:3.5em;
   width: calc(100vw - 8em);
 }
 
