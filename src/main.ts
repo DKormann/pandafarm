@@ -35,12 +35,12 @@ export type ServerSession = {
 }
 
 
-const waiter = createHTMLElement("h1", {parentElement:document.body}, "Waiting for connection...");
 const head = createHTMLElement("div", {parentElement:document.body, id:"head"})
 const title = createHTMLElement("h2", {parentElement:head, id:"title", }, "🏠 Panda Farm")
 const navbar = createHTMLElement("nav", {parentElement:head, id:"navbar"});
 
 const page = createHTMLElement("div", {id:"page", parentElement:document.body});
+const waiter = createHTMLElement("h1", {parentElement:page}, "Waiting for connection...");
 
 const pageReload = () => ConnectServer();
 
@@ -60,6 +60,7 @@ function ConnectServer(){
     if (!player){
       conn.reducers.createPerson()
       log("No player found, creating new player");
+      await requestPlayerId(conn, identity);
       player = conn.db.person.id.find(identity);
       if (!player) {
         panic("Error: Player not created");

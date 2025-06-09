@@ -134,6 +134,18 @@ export function createGame(session:ServerSession){
 
   session.player.subscribe(newplayer => {
 
+    {
+      const worth = newplayer.gameState.reduce((acc, curr) => acc + 2 ** curr, 0);
+      if (worth > newplayer.highscore){
+        sellbutton.classList.add("active");
+      }else{
+        sellbutton.classList.remove("active");
+      }
+
+    }
+
+
+
     balanceElement.textContent = `bank: ${newplayer.bank}$`;
     
     if (
