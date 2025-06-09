@@ -55,18 +55,27 @@ function ConnectServer(){
   .withToken(dbtoken.get())
   .onConnect(async (conn: DbConnection, identity: Identity, token: string) => {
     await requestCompetition(conn)
-    await requestPlayerId(conn, identity);
-    let player = conn.db.person.id.find(identity)
-    if (!player){
-      conn.reducers.createPerson()
-      log("No player found, creating new player");
-      await requestPlayerId(conn, identity);
-      player = conn.db.person.id.find(identity);
-      if (!player) {
-        panic("Error: Player not created");
-        return;
-      }
-    }
+    // await requestPlayerId(conn, identity)
+    // let player = conn.db.person.id.find(identity)
+    // if (!player){
+    //   conn.reducers.createPerson()
+    //   log("No player found, creating new player");
+    //   await requestPlayerId(conn, identity);
+    //   player = conn.db.person.id.find(identity);
+    //   if (!player) {
+    //     panic("Error: Player not created");
+    //     return;
+    //   }
+    // }
+
+    const player = await requestPlayerId(conn, identity)
+    .catch(async e => {
+      log("Error requesting player by id", e);
+      conn.reducers.createPerson();
+      return await requestPlayerId(conn, identity);
+
+    })
+
     log("Connected as", player.name, "with id", player.id.toHexString());
 
     const playerWriter = new Writable<Person>(player);

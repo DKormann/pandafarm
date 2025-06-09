@@ -42,16 +42,15 @@ export function requestPlayerName(conn: DbConnection, name: string) {
 export function requestPlayerId(conn: DbConnection, id:Identity) {
   return new Promise<Person>((resolve, reject) => {
     requestPerson(conn, `SELECT * FROM person WHERE id == '${id.toHexString()}'`)
-
-      .then((persons) => {
-        persons = persons.filter(p => p.id.data === id.data);
-        if (persons.length > 0) {
-          resolve(persons[0]);
-        } else {
-          reject(new Error(`Player with id ${id.toHexString()} not found`));
-        }
-      })
-      .catch(reject);
+    .then((persons) => {
+      persons = persons.filter(p => p.id.data === id.data);
+      if (persons.length > 0) {
+        resolve(persons[0]);
+      } else {
+        reject(new Error(`Player with id ${id.toHexString()} not found`));
+      }
+    })
+    .catch(reject);
   });
 }
 
