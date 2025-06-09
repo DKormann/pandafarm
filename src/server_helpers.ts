@@ -1,22 +1,48 @@
+import { Identity } from "@clockworklabs/spacetimedb-sdk";
 import { ServerSession } from "./main";
-import { Person, SubscriptionEventContext } from "./module_bindings";
+import { DbConnection, Person, SubscriptionEventContext } from "./module_bindings";
 
 
-export function getPersonByName(session: ServerSession, name: string): Promise<Person> {
-  return new Promise((resolve, reject) => {
-    session.conn.subscriptionBuilder()
-      .onApplied((ctx: SubscriptionEventContext) => 
-        {
-          const persons = Array.from(ctx.db.person.iter()).filter((p: Person) => p.name === name);
-          if (persons.length > 0) {
-            resolve(persons[0]);
-          } else {
-            reject(new Error(`Person with name ${name} not found`));
-          }
+export function requestPerson(conn: DbConnection, query: string){
+  return new Promise<Person[]>((resolve, reject) => {
+    conn.subscriptionBuilder()
+      .onApplied((ctx: SubscriptionEventContext) => {
+        const persons = Array.from(ctx.db.person.iter());
+        resolve(persons);
+      })
+      .onError((error) => reject(error))
+      .subscribe(query);
+  });
+}
+
+export function requestPlayerName(conn: DbConnection, name: string) {
+  return new Promise<Person>((resolve, reject) => {
+    requestPerson(conn, `SELECT * FROM person WHERE name == '${name}'`)
+      .then((persons) => {
+        if (persons.length > 0) {
+          resolve(persons[0]);
+        } else {
+          reject(new Error(`Player with name ${name} not found`));
         }
-      )
-      .subscribe(`SELECT * FROM person WHERE name == '${name}'`)
     })
-  }
-  
+  })
+}
+
+export function requestPlayerId(conn: DbConnection, id:Identity) {
+  return new Promise<Person>((resolve, reject) => {
+    requestPerson(conn, `SELECT * FROM person WHERE id == '${id.toHexString()}'`)
+      .then((persons) => {
+        if (persons.length > 0) {
+          resolve(persons[0]);
+        } else {
+          reject(new Error(`Player with id ${id.toHexString()} not found`));
+        }
+      })
+      .catch(reject);
+  });
+}
+
+export function requestCompetition(conn: DbConnection) {
+  return requestPerson(conn, `SELECT * FROM person WHERE highscore > 0`);
+}
 

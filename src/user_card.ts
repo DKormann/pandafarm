@@ -1,7 +1,7 @@
 import { Chat } from "./chat";
 import { createHTMLElement } from "./html";
 import { ServerSession } from "./main";
-import { skins } from "./online_game";
+import { skins } from "./game";
 
 
 function UserCard(session:ServerSession, userName: string) {

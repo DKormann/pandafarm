@@ -4,6 +4,7 @@ import { Writable, Readable } from "./store.js";
 import { createHTMLElement } from "./html.js";
 import { Person } from "./module_bindings/person_type.js";
 import { AnimalAction } from "./module_bindings/animal_action_type.js";
+import { ServerSession } from "./main.js";
 
 const REQUEST_TIMEOUT = 100; // milliseconds
 
@@ -22,12 +23,19 @@ export const skins = [
   "🐲", // 512
 ]
 
-export function createGame(
-  player: Readable<Person>,
-  sell: () => void,
-  red: () => void,
-  green: ()=> void,
-){
+export function createGame(session:ServerSession){
+
+  function checkZero(){
+    if (session.player.get().bank == 0){
+      let pr = window.prompt("You have no money left, say please to get more");
+      if (pr && pr.length > 0){
+        session.conn.reducers.resetBank();
+        session.updatePlayer(true);
+      }
+    }
+  }
+
+  checkZero();
 
   
   let game = createHTMLElement("div", { id: "game" });
@@ -124,8 +132,7 @@ export function createGame(
     })
   }
 
-  player.subscribe(newplayer => {
-
+  session.player.subscribe(newplayer => {
 
     balanceElement.textContent = `bank: ${newplayer.bank}$`;
     console.log(newplayer.lastActionResult);
@@ -174,7 +181,12 @@ export function createGame(
       return
     }
     triggered = true
-    action()
+
+    action();
+
+    session.updatePlayer(true);
+    checkZero();
+  
     setTimeout(() => {
       triggered = false
       if (nextRequest){
@@ -184,23 +196,24 @@ export function createGame(
     }, REQUEST_TIMEOUT);
   }
 
+  session.conn.reducers.onPlayRed((ctx) => {
+    console.log("onPlayRed", ctx);
+  })
+    
 
-  // redbutton.onclick = ()=>triggerRequest(red);
-  // greenbutton.onclick = ()=>triggerRequest(green);
-  // sellbutton.onclick = ()=>triggerRequest(sell);
 
   redbutton.addEventListener("click", e => {
     e.preventDefault();
-    triggerRequest(red);
+    triggerRequest(()=>session.conn.reducers.playRed());
   })
 
   greenbutton.addEventListener("click", e => {
     e.preventDefault();
-    triggerRequest(green);
+    triggerRequest(() => session.conn.reducers.playGreen());
   })
   sellbutton.addEventListener("click", e => {
     e.preventDefault();
-    triggerRequest(sell);
+    triggerRequest(() => session.conn.reducers.sellGameWorth());
   })
 
 

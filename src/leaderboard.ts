@@ -1,10 +1,10 @@
 import { createHTMLElement } from "./html";
 import { Person } from "./module_bindings";
 import { Writable, Readable } from "./store";
-import { skins } from "./online_game";
+import { skins } from "./game";
 import { ServerSession } from "./main";
 
-export function createLeaderboard(session:ServerSession , entries: Readable<Person[]>) {
+export function createLeaderboard(session:ServerSession) {
   
   const leaderboard = createHTMLElement("div", {class: "leaderboard"});
 
@@ -29,7 +29,7 @@ export function createLeaderboard(session:ServerSession , entries: Readable<Pers
 
 
   const list = createHTMLElement("div", {});
-  entries.subscribe((entries) => {
+  session.competition.subscribe((entries) => {
     list.innerHTML = "";
     entries.sort((a, b) => b.highscore - a.highscore).slice(0, 100);;
     for (const [index, entry] of entries.entries()) {

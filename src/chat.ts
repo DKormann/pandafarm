@@ -2,11 +2,12 @@
 import { Dialog, createHTMLElement } from "./html";
 import { ServerSession } from "./main";
 import { Gift, Person, PlayGreen } from "./module_bindings";
-import { getPersonByName } from "./server_helpers";
+// import { getPersonByName } from "./server_helpers";
 import { Writable } from "./store";
 import { Message , ReducerEventContext} from "./module_bindings";
 import { Identity } from "@clockworklabs/spacetimedb-sdk";
-import { skins } from "./online_game";
+import { skins } from "./game";
+import { requestPerson, requestPlayerId, requestPlayerName } from "./server_helpers";
 
 
 
@@ -59,44 +60,27 @@ export function ChatSessions(session: ServerSession): HTMLElement{
         parentElement: sessbutn,
         class: "session_msg",
       }, msg.content);
-
     }
   })
   .subscribe(`SELECT * FROM messages WHERE sender == '${self.id.toHexString()}' OR receiver == '${self.id.toHexString()}'`)
   return el
-
 }
 
 
-export function Chat(session: ServerSession, target:string): HTMLElement {
+export function Chat(session: ServerSession, target: string): HTMLElement {  
 
   const el = createHTMLElement("div", {id: "chat"});
-
-  el.appendChild(createHTMLElement("h2", {id: "user_card"}, `Chat with ${target}`));
-
-
-
-  session.conn.subscriptionBuilder()
-  .onApplied(c=>{
-    for (let person of c.db.person.iter()){
-      if (person.name === target) {
-
-        createHTMLElement("p", {parentElement:el}, `bank: ${person.bank}$, highscore: ${person.highscore}$ ${person.highscoreState.reduce((acc:string, curr:number) => acc + skins[curr], "")}, Game: ${person.gameState.reduce((acc:string, curr:number) => acc + skins[curr], "")}`);
-      }
-    }
-  })
-  .subscribe(`SELECT * FROM person WHERE name == '${target}'`);
-
-
-
-
-
+  const card = el.appendChild(createHTMLElement("h2", {id: "user_card"}, `Chat with ${target}`));
   const self = session.player.get()
 
-  getPersonByName(session, target)
-    .then((person: Person) => {
+  const messagesElement = createHTMLElement("div", {id: "messages", parentElement: el});
 
-      const messagesElement = createHTMLElement("div", {parentElement: el, id: "messages"});
+  requestPlayerName(session.conn, target)
+    .then((person) => {
+
+
+
+      card.appendChild(createHTMLElement("p", {}, `bank: ${person.bank}$`));
 
       const giftbutton = createHTMLElement("button", {
         parentElement: el,
@@ -110,7 +94,7 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
         for (let i = 0; i <= 9; i++) {
           const button = createHTMLElement("p", {
             parentElement: dialog,
-            classList: "gitf_button",
+            classList: "gift_button",
           }, `${skins[i]} ${2**(i)}$`);
 
           button.addEventListener("click", () => {
@@ -118,11 +102,8 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
             dialog.remove();
           });
         }
-
-
       });
       
-
       const message_input = createHTMLElement("textarea", {
         parentElement: el,
         id: "chat_input"
@@ -235,7 +216,8 @@ export function Chat(session: ServerSession, target:string): HTMLElement {
     .catch((err: Error) => {
       console.error("Error fetching person:", err);
       createHTMLElement("h2", {parentElement: el}, `Chat with ${target} (not found)`);
-    });
+    })
+
 
 
   return el
