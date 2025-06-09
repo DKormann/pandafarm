@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && BUILD_TARGET=gh-pages vite build --force",
+    "dev": "nvite",
+    "build": "BUILD_TARGET=gh-pages vite build --force",
     "build:gh-pages": "BUILD_TARGET=gh-pages vite build --force",
     "preview": "vite preview",
     "check": "tsc --noEmit"

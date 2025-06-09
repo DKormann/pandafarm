@@ -70,17 +70,25 @@ export function ChatSessions(session: ServerSession): HTMLElement{
 export function Chat(session: ServerSession, target: string): HTMLElement {  
 
   const el = createHTMLElement("div", {id: "chat"});
-  const card = el.appendChild(createHTMLElement("h2", {id: "user_card"}, `Chat with ${target}`));
-  const self = session.player.get()
+  const card = createHTMLElement("div", {id: "user_card", parentElement: el});
 
+  createHTMLElement("h2", {parentElement: card}, `Chat with ${target}`);
+
+  const self = session.player.get()
   const messagesElement = createHTMLElement("div", {id: "messages", parentElement: el});
 
   requestPlayerName(session.conn, target)
     .then((person) => {
 
 
+      const info = card.appendChild(createHTMLElement("p", {}, ""));
+      session.competition.subscribe((competition) => {
+        competition.filter((p) => p.id.data === person.id.data)
+          .forEach((p) => {
+            info.textContent = `bank: ${p.bank}$ highscore: ${p.highscore}$ ${p.highscoreState.reduce((a, b) => a+skins[b], "")} Game: ${p.gameState.reduce((a, b) => a+skins[b], "")}`;
+          });
+      })
 
-      card.appendChild(createHTMLElement("p", {}, `bank: ${person.bank}$`));
 
       const giftbutton = createHTMLElement("button", {
         parentElement: el,

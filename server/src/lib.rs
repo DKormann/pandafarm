@@ -152,8 +152,6 @@ fn check_spam(ctx: &ReducerContext) -> Result<(), String> {
     }
   }
 
-
-
 }
 
 
@@ -178,7 +176,7 @@ pub fn create_person(ctx: &ReducerContext) -> Result<(), String> {
 
   ctx.db.person().insert(person);
   Ok(())
-}   
+}
 
 
 fn get_person(ctx: &ReducerContext) -> Result<Person, String> {

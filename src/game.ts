@@ -135,7 +135,6 @@ export function createGame(session:ServerSession){
   session.player.subscribe(newplayer => {
 
     balanceElement.textContent = `bank: ${newplayer.bank}$`;
-    console.log(newplayer.lastActionResult);
     
     if (
       newplayer.lastActionResult.length == animals.length &&
@@ -196,10 +195,6 @@ export function createGame(session:ServerSession){
     }, REQUEST_TIMEOUT);
   }
 
-  session.conn.reducers.onPlayRed((ctx) => {
-    console.log("onPlayRed", ctx);
-  })
-    
 
 
   redbutton.addEventListener("click", e => {

@@ -4,14 +4,22 @@ import { DbConnection, Person, SubscriptionEventContext } from "./module_binding
 
 
 export function requestPerson(conn: DbConnection, query: string){
+  
   return new Promise<Person[]>((resolve, reject) => {
+
+
     conn.subscriptionBuilder()
-      .onApplied((ctx: SubscriptionEventContext) => {
-        const persons = Array.from(ctx.db.person.iter());
-        resolve(persons);
-      })
-      .onError((error) => reject(error))
-      .subscribe(query);
+    .onApplied((ctx: SubscriptionEventContext) => {
+      const persons = Array.from(ctx.db.person.iter());
+      resolve(persons);
+    })
+    .onError((error) => {
+      console.error("Error in requestPerson:", error);
+      reject(error)
+    }
+  )
+  .subscribe(query);
+
   });
 }
 

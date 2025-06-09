@@ -42,6 +42,8 @@ const navbar = createHTMLElement("nav", {parentElement:head, id:"navbar"});
 
 const page = createHTMLElement("div", {id:"page", parentElement:document.body});
 
+const pageReload = () => ConnectServer();
+
 // @ts-ignore
 const serverurl = (servermode == 'local') ? "ws://localhost:3000" : "wss://maincloud.spacetimedb.com";
 
@@ -73,10 +75,18 @@ function ConnectServer(){
       competitionWriter.set(Array.from(conn.db.person.iter()).filter(p => p.highscore > 0).sort((a, b) => b.highscore - a.highscore))
     }
 
-    const updatePlayer = (force: boolean = false) =>
-      requestPlayerId(conn, player.id).then(() => {
+    const updatePlayer = (force: boolean = false) =>{
+      return requestPlayerId(conn, player.id).then(() => {
         playerWriter.set(conn.db.person.id.find(player.id)!, force)
       })
+      .catch(e=>{
+        log("Error updating player", e);
+        panic("Error updating player: " + e.message);
+      })
+
+    }
+
+
 
     updateCompetition();
 
@@ -90,19 +100,32 @@ function ConnectServer(){
       competition: competitionWriter,
     }
 
-    conn.reducers.onSendGift((ctx: ReducerEventContext) => {session.updatePlayer()})
+    
+    conn.reducers.onSendGift((ctx: ReducerEventContext) => {
+      session.updatePlayer()
+      updateCompetition();
+    })
     conn.reducers.onSetPersonName((ctx: ReducerEventContext) => {
       session.updatePlayer();
       updateCompetition();
     })
-
-
+    
+    
     waiter.remove();
-
+    
+    document.body.removeEventListener("click", pageReload);
+    
     loadPage(session);
-
+    
+    // setTimeout(() => {
+    //   session.conn.disconnect();
+    // }, 1000)
   })
-  .onConnectError((ctx: ErrorContext, error: Error) => log("onConnectError", error))
+  .onConnectError((ctx: ErrorContext, error: Error) =>{  
+    log("onConnectError", error)
+    document.body.addEventListener("click", pageReload);
+  }
+  )
   .build()
   
 }
@@ -126,6 +149,7 @@ function loadPage(session: ServerSession){
 
   const board = createLeaderboard(session);
   const game = createGame(session);
+  navbar.innerHTML = "";
 
   const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
   homebutn.onclick = () => {
