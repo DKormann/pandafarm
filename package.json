@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "nvite",
+    "dev": "vite",
     "build": "BUILD_TARGET=gh-pages vite build --force",
     "build:gh-pages": "BUILD_TARGET=gh-pages vite build --force",
     "preview": "vite preview",
