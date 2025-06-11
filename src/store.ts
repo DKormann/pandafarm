@@ -20,9 +20,9 @@ export class Writable <T> {
   }
 
 
-  update(updater: (value: T) => T): void {
+  update(updater: (value: T) => T, force = false): void {
     const newValue = updater(this.value)
-    this.set(newValue)
+    this.set(newValue, force)
   }
 
   subscribe(listener: (value: T) => void) {

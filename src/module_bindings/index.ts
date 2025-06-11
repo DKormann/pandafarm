@@ -68,6 +68,8 @@ import { PaymentsTableHandle } from "./payments_table.ts";
 export { PaymentsTableHandle };
 import { PersonTableHandle } from "./person_table.ts";
 export { PersonTableHandle };
+import { UnreadTableHandle } from "./unread_table.ts";
+export { UnreadTableHandle };
 
 // Import and reexport all types
 import { AnimalAction } from "./animal_action_type.ts";
@@ -88,6 +90,8 @@ import { Payment } from "./payment_type.ts";
 export { Payment };
 import { Person } from "./person_type.ts";
 export { Person };
+import { Unread } from "./unread_type.ts";
+export { Unread };
 
 const REMOTE_MODULE = {
   tables: {
@@ -122,6 +126,11 @@ const REMOTE_MODULE = {
       tableName: "person",
       rowType: Person.getTypeScriptAlgebraicType(),
       primaryKey: "id",
+    },
+    unread: {
+      tableName: "unread",
+      rowType: Unread.getTypeScriptAlgebraicType(),
+      primaryKey: "receiver",
     },
   },
   reducers: {
@@ -405,6 +414,10 @@ export class RemoteTables {
 
   get person(): PersonTableHandle {
     return new PersonTableHandle(this.connection.clientCache.getOrCreateTable<Person>(REMOTE_MODULE.tables.person));
+  }
+
+  get unread(): UnreadTableHandle {
+    return new UnreadTableHandle(this.connection.clientCache.getOrCreateTable<Unread>(REMOTE_MODULE.tables.unread));
   }
 }
 

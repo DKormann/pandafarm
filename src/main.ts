@@ -7,7 +7,7 @@ import { DbConnection, ErrorContext, Person, ReducerEventContext, SubscriptionEv
 import { createGame } from "./game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
-import { Chat, ChatSessions } from "./chat"
+import { Chat } from "./chat/Chat"
 import { requestCompetition, requestPlayerId } from "./server_helpers"
 import { Reducer } from "."
 
@@ -54,6 +54,8 @@ function ConnectServer(){
   .withModuleName(dbname)
   .withToken(dbtoken.get())
   .onConnect(async (conn: DbConnection, identity: Identity, token: string) => {
+
+
     await requestCompetition(conn)
 
     const player = await requestPlayerId(conn, identity)
@@ -144,6 +146,7 @@ function loadPage(session: ServerSession){
 
   const board = createLeaderboard(session);
   const game = createGame(session);
+  const {sessionsView, chatView} = Chat(session);
   navbar.innerHTML = "";
 
   const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
@@ -171,12 +174,15 @@ function loadPage(session: ServerSession){
     }
     if (path[0] == "user"){
       if (path[1]!=undefined){
-        page.appendChild(Chat(session, path[1]));
+
+        page.appendChild(
+          chatView(path[1])
+        );
         return
       }
     }else if (path[0] == "chat"){
       msgbutn.classList.add("active");
-      page.appendChild(ChatSessions(session));
+      page.appendChild(sessionsView);
       return
     }
     page.appendChild(createHTMLElement("h1", {}, "Page not found"));

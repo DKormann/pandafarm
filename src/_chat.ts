@@ -2,7 +2,6 @@
 import { Dialog, createHTMLElement } from "./html";
 import { ServerSession } from "./main";
 import { Gift, Person, PlayGreen } from "./module_bindings";
-// import { getPersonByName } from "./server_helpers";
 import { Writable } from "./store";
 import { Message , ReducerEventContext} from "./module_bindings";
 import { Identity } from "@clockworklabs/spacetimedb-sdk";
@@ -15,8 +14,6 @@ export function ChatSessions(session: ServerSession): HTMLElement{
   const el = createHTMLElement("div", {id: "chat_sessions"});
   const self = session.player.get();
   session.conn.subscriptionBuilder()
-
-  
 
   .onApplied((ctx) => {
     const lastmessages: Map<string, Message> = new Map();
@@ -278,8 +275,6 @@ export function Chat(session: ServerSession, target: string): HTMLElement {
       console.error("Error fetching person:", err);
       createHTMLElement("h2", {parentElement: el}, `Chat with ${target} (not found)`);
     })
-
-
 
   return el
 

@@ -73,5 +73,3 @@ export function requestCompetition(conn: DbConnection) {
 }
 
 
-
-

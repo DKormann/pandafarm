@@ -1,7 +1,7 @@
 
 use std::vec;
 
-use spacetimedb::{rand::{seq::index, Rng}, reducer, table, Identity, ReducerContext, Table};
+use spacetimedb::{rand::Rng, reducer, table, Identity, ReducerContext, Table};
 
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
@@ -42,10 +42,6 @@ pub struct Person {
 }
 
 
-// #[table(name = payment, public)]
-// pub struct Payment {
-  
-
 #[table(name = messages, public)]
 pub struct Message{
   sender: Identity,
@@ -53,6 +49,7 @@ pub struct Message{
   content: String,
   timestamp: u64,
 }
+
 
 #[table(name = payments, public)]
 pub struct Payment {
@@ -62,12 +59,20 @@ pub struct Payment {
   timestamp: u64,
 }
 
+
 #[table(name = gifts, public)]
 pub struct Gift {
   sender: Identity,
   receiver: Identity,
   animal: u32,
   timestamp: u64,
+}
+
+#[table(name = unread, public)]
+pub struct Unread {
+  #[primary_key]
+  receiver: Identity,
+  senders: Vec<Identity>,
 }
 
 #[table(name = followers, public)]
@@ -81,15 +86,6 @@ pub struct Follower{
 
 const MAXLEVEL: u32 = 9;
 
-// secure game plan :
-// server   ---   client
-//   <- game request
-//   -> game hash
-//   loop [
-//   <- move
-//   -> game secret + result + next game hash
-//   ]
-
 
 #[table(name = game_state, private)]
 pub struct GameState{
@@ -97,7 +93,6 @@ pub struct GameState{
   id: Identity,
   secret_seed: u128,
 }
-
 
 #[reducer(init)]
 pub fn init(_ctx: &ReducerContext) {
@@ -336,7 +331,8 @@ pub fn play_green(ctx: &ReducerContext) -> Result<(), String> {
   }).collect();
   apply_animal_actions(ctx, person, actions)
 }
-      
+
+
 
 #[reducer]
 pub fn send_message(ctx: &ReducerContext, receiver: Identity, content: String) -> Result<(), String> {
@@ -349,11 +345,26 @@ pub fn send_message(ctx: &ReducerContext, receiver: Identity, content: String) -
     timestamp: ctx.timestamp.to_micros_since_unix_epoch() as u64,
   };
 
+  if let Some (mut unread) = ctx.db.unread().receiver().find(receiver) {
+    unread.senders.push(ctx.sender);
+    ctx.db.unread().receiver().update(unread);
+  } else {
+    ctx.db.unread().insert(Unread{
+      receiver,
+      senders: vec![ctx.sender]
+    });
+  }
+
   ctx.db.messages().insert(message);
   Ok(())
 }
 
-
+pub fn mark_read(ctx: &ReducerContext, sender: Identity)  -> () {
+  if let Some(mut unread) = ctx.db.unread().receiver().find(ctx.sender) {
+    unread.senders.retain(|x| *x != sender);
+    ctx.db.unread().receiver().update(unread);
+  };
+}
 
 #[reducer]
 pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Result<(), String> {
@@ -383,8 +394,6 @@ pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Resul
     animal,
     timestamp: ctx.timestamp.to_micros_since_unix_epoch() as u64,
   };
-
-  // log::info!("Sending gift from {} to {}", ctx.sender, receiver.clone().to_string());
 
 
   ctx.db.person().id().update(receiver);
