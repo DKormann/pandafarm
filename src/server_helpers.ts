@@ -6,8 +6,6 @@ import { DbConnection, Person, SubscriptionEventContext } from "./module_binding
 export function requestPerson(conn: DbConnection, query: string){
   
   return new Promise<Person[]>((resolve, reject) => {
-
-
     conn.subscriptionBuilder()
     .onApplied((ctx: SubscriptionEventContext) => {
       const persons = Array.from(ctx.db.person.iter());
@@ -19,7 +17,6 @@ export function requestPerson(conn: DbConnection, query: string){
     }
   )
   .subscribe(query);
-
   });
 }
 
@@ -34,8 +31,6 @@ export function requestPlayerName(conn: DbConnection, name: string) {
           reject(new Error(`Player with name ${name} not found`));
         }
     })
-
-
   })
 }
 
@@ -55,6 +50,8 @@ export function requestPlayerId(conn: DbConnection, id:Identity) {
 }
 
 
+
+
 export function requestSql(conn: DbConnection, query: string) {
   return new Promise<SubscriptionEventContext>((resolve, reject) => {
     conn.subscriptionBuilder()
@@ -71,5 +68,3 @@ export function requestSql(conn: DbConnection, query: string) {
 export function requestCompetition(conn: DbConnection) {
   return requestPerson(conn, `SELECT * FROM person WHERE highscore > 0`);
 }
-
-

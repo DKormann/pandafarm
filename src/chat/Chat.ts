@@ -6,6 +6,7 @@ import { Writable } from "../store";
 import { ChatPreview, SessionsView } from "./sessionsView";
 import { Gift, Message, Person, Unread } from "../module_bindings";
 import { createHTMLElement } from "../html";
+import { requestPlayerId, requestPlayerName } from "../server_helpers";
 
 
 export type Sendable = 
@@ -22,7 +23,7 @@ export type Sendable =
 export function Chat (session: ServerSession) {
 
   const previews = new Writable<ChatPreview[]>([]);
-  const sessionsView = SessionsView(previews)
+  const sessionsView = SessionsView(previews, session.goto)
   const partner = new Writable<Person>(session.player.get());
   const allMessages = new Writable<Map<bigint, Sendable[]>>(new Map<bigint, Sendable[]>());
   const partnerMessages = new Writable<Sendable[]>([]);
@@ -31,12 +32,25 @@ export function Chat (session: ServerSession) {
   const playeridhex = playerid.toHexString();
 
 
-  allMessages.subscribeLater(rmsgs=>{
-    console.log("All messages updated:", rmsgs);
-    
+  allMessages.subscribeLater(async rmsgs=>{
     partnerMessages.set(rmsgs.get(partner.get().id.data) ?? [])
-    console.log("Partner messages updated:", partnerMessages.get().length);
     
+    const names = await Promise.all(
+      rmsgs.entries().map(async ([id, msgs]) => {
+        let name = await requestPlayerId(session.conn, new Identity(id))
+        .then(p => p.name)
+        .catch(() => 
+          {
+            console.log("Could not find player with id", id, "falling back to unknown");
+            "unkown"
+          })
+        return { unread: false,
+          item: msgs[0],
+          sender: name,
+        } as ChatPreview;
+      })
+    )
+    previews.set(names);
   })
 
   partner.subscribeLater(p =>{
@@ -61,24 +75,16 @@ export function Chat (session: ServerSession) {
   }
   const addGift = (msg: Gift) =>  addSend({...msg, type: "gift"});
 
-  const addPreview = (u: Unread)=>{
-    previews.set(u.senders.map(s=>
-    ({
-      unread:s.data != partner.get().id.data,
-      item: allMessages.get().get(s.data)![0],
-      sender: session.conn.db.person.id.find(s).name ?? "unknown"
-    })
-    ))
-  }
+  
+
 
   session.conn.subscriptionBuilder()
   .onApplied(ctx=>{
-    ctx.db.messages.onInsert((_, msg)=>{
-      console.log("insert message");
-      addMessage(msg)})
+    ctx.db.messages.onInsert((_, msg)=>{addMessage(msg)})
     ctx.db.gifts.onInsert((_, gift)=>{addGift(gift)})
   })
   .onError(error => console.error("Error in chat subscription:", error))
+  
   .subscribe([
     `SELECT * FROM messages WHERE receiver == '${playeridhex}' OR sender == '${playeridhex}'`,
     `SELECT * FROM gifts WHERE receiver == '${playeridhex}' OR sender == '${playeridhex}'`,
@@ -99,7 +105,6 @@ export function Chat (session: ServerSession) {
     m => {session.conn.reducers.sendMessage(partner.get().id, m)},
     g => {session.conn.reducers.sendGift(partner.get().id, g)},
   )
-
 
   return {
     sessionsView: sessionsView as HTMLElement,

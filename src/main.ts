@@ -146,6 +146,10 @@ function loadPage(session: ServerSession){
 
   const board = createLeaderboard(session);
   const game = createGame(session);
+
+  session.goto = (path: string) => {goto(path); loadpath(path)};
+
+
   const {sessionsView, chatView} = Chat(session);
   navbar.innerHTML = "";
 
@@ -195,7 +199,6 @@ function loadPage(session: ServerSession){
 
   loadpath(window.location.pathname);
   
-  session.goto = (path: string) => {goto(path); loadpath(path)};
   title.onclick = () => session.goto("/")
 
 }
