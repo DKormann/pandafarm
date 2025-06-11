@@ -35,7 +35,8 @@ export function Chat (session: ServerSession) {
   allMessages.subscribeLater(async rmsgs=>{
     partnerMessages.set(rmsgs.get(partner.get().id.data) ?? [])
     
-    const names = await Promise.all(
+    previews.set(
+      (await Promise.all(
       rmsgs.entries().map(async ([id, msgs]) => {
         let name = await requestPlayerId(session.conn, new Identity(id))
         .then(p => p.name)
@@ -44,13 +45,16 @@ export function Chat (session: ServerSession) {
             console.log("Could not find player with id", id, "falling back to unknown");
             "unkown"
           })
-        return { unread: false,
-          item: msgs[0],
+        return {
+          unread: false,
+          item: msgs[msgs.length - 1],
           sender: name,
         } as ChatPreview;
       })
-    )
-    previews.set(names);
+    )).sort((a, b) => {
+      return b.item.timestamp < a.item.timestamp ? -1 : 1;
+    })
+  )
   })
 
   partner.subscribeLater(p =>{
@@ -75,8 +79,6 @@ export function Chat (session: ServerSession) {
   }
   const addGift = (msg: Gift) =>  addSend({...msg, type: "gift"});
 
-  
-
 
   session.conn.subscriptionBuilder()
   .onApplied(ctx=>{
@@ -91,15 +93,33 @@ export function Chat (session: ServerSession) {
     `SELECT * FROM unread WHERE receiver == '${playeridhex}'`,
   ])
 
-  const PartnerSubscription = session.conn.subscriptionBuilder()
+
+
+  const PartnerSubscriptionBuilder = session.conn.subscriptionBuilder()
   .onApplied((ctx) => {
+    ctx.db.person.onUpdate((_, old, person) =>{
+      console.log("partner update");
+      partner.set(person);
+    })
+    ctx.db.person.onInsert((_, person) => {
+      console.log("partner insert", person.name);
+      if (person.id.data === playerid.data) {
+        partner.set(person);
+      }
+    })
   })
   .onError((error) => {
     console.error("Error in partner subscription:", error);
   })
+  
+  let PartnerSubscription :any = null;
 
-  PartnerSubscription.subscribe(`SELECT * FROM person WHERE id != '${playeridhex}'`);
-
+  const setPartner = (name: string) =>{
+    let newsub = PartnerSubscriptionBuilder.subscribe(`SELECT * FROM person WHERE name == '${name}'`);
+    if (PartnerSubscription) PartnerSubscription.unsubscribe();
+    PartnerSubscription = newsub;
+    partner.set(session.conn.db.person.name.find(name) )
+  }
 
   const chatView = ChatView(session.player, partner, partnerMessages,
     m => {session.conn.reducers.sendMessage(partner.get().id, m)},
@@ -109,15 +129,10 @@ export function Chat (session: ServerSession) {
   return {
     sessionsView: sessionsView as HTMLElement,
     chatView: (name: string) =>{
-      const person = session.conn.db.person.name.find(name);
-      if (!person) {
-        createHTMLElement("div", {class: "chat-error"}, `Person with name ${name} not found`);
-      }
-      partner.set(person); 
+      setPartner(name);
       return chatView as HTMLElement;
     }
   }
 
-  // }
 }
 
