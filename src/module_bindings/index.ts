@@ -48,6 +48,8 @@ import { SellGameWorth } from "./sell_game_worth_reducer.ts";
 export { SellGameWorth };
 import { SendGift } from "./send_gift_reducer.ts";
 export { SendGift };
+import { SendItem } from "./send_item_reducer.ts";
+export { SendItem };
 import { SendMessage } from "./send_message_reducer.ts";
 export { SendMessage };
 import { SetPersonName } from "./set_person_name_reducer.ts";
@@ -90,6 +92,8 @@ import { Payment } from "./payment_type.ts";
 export { Payment };
 import { Person } from "./person_type.ts";
 export { Person };
+import { Sendable } from "./sendable_type.ts";
+export { Sendable };
 import { Unread } from "./unread_type.ts";
 export { Unread };
 
@@ -166,6 +170,10 @@ const REMOTE_MODULE = {
       reducerName: "send_gift",
       argsType: SendGift.getTypeScriptAlgebraicType(),
     },
+    send_item: {
+      reducerName: "send_item",
+      argsType: SendItem.getTypeScriptAlgebraicType(),
+    },
     send_message: {
       reducerName: "send_message",
       argsType: SendMessage.getTypeScriptAlgebraicType(),
@@ -209,6 +217,7 @@ export type Reducer = never
 | { name: "ResetBank", args: ResetBank }
 | { name: "SellGameWorth", args: SellGameWorth }
 | { name: "SendGift", args: SendGift }
+| { name: "SendItem", args: SendItem }
 | { name: "SendMessage", args: SendMessage }
 | { name: "SetPersonName", args: SetPersonName }
 ;
@@ -308,6 +317,22 @@ export class RemoteReducers {
     this.connection.offReducer("send_gift", callback);
   }
 
+  sendItem(receiver: Identity, item: Sendable) {
+    const __args = { receiver, item };
+    let __writer = new BinaryWriter(1024);
+    SendItem.getTypeScriptAlgebraicType().serialize(__writer, __args);
+    let __argsBuffer = __writer.getBuffer();
+    this.connection.callReducer("send_item", __argsBuffer, this.setCallReducerFlags.sendItemFlags);
+  }
+
+  onSendItem(callback: (ctx: ReducerEventContext, receiver: Identity, item: Sendable) => void) {
+    this.connection.onReducer("send_item", callback);
+  }
+
+  removeOnSendItem(callback: (ctx: ReducerEventContext, receiver: Identity, item: Sendable) => void) {
+    this.connection.offReducer("send_item", callback);
+  }
+
   sendMessage(receiver: Identity, content: string) {
     const __args = { receiver, content };
     let __writer = new BinaryWriter(1024);
@@ -371,6 +396,11 @@ export class SetReducerFlags {
   sendGiftFlags: CallReducerFlags = 'FullUpdate';
   sendGift(flags: CallReducerFlags) {
     this.sendGiftFlags = flags;
+  }
+
+  sendItemFlags: CallReducerFlags = 'FullUpdate';
+  sendItem(flags: CallReducerFlags) {
+    this.sendItemFlags = flags;
   }
 
   sendMessageFlags: CallReducerFlags = 'FullUpdate';

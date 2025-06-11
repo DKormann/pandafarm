@@ -324,4 +324,5 @@ export function SessionsView(chats: Readable<ChatPreview[]>){
       }, chat.item.type === "message" ? chat.item.content : `🎁 ${chat.item.animal}`);
     })
   })
+  return el;
 }

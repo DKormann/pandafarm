@@ -5,7 +5,6 @@ import { ChatView } from "./chatView";
 import { Writable } from "../store";
 import { ChatPreview, SessionsView } from "./sessionsView";
 import { Gift, Message, Person, Unread } from "../module_bindings";
-import { EventContext } from "../module_bindings";
 import { createHTMLElement } from "../html";
 
 
@@ -19,12 +18,13 @@ export type Sendable =
   content: string,
 })
 
+
 export function Chat (session: ServerSession) {
 
   const previews = new Writable<ChatPreview[]>([]);
-  const sessionsView = new SessionsView(previews)
+  const sessionsView = SessionsView(previews)
   const partner = new Writable<Person>(session.player.get());
-  const allMessages = new Writable<Map<Identity, Sendable[]>>(new Map<Identity, Sendable[]>());
+  const allMessages = new Writable<Map<bigint, Sendable[]>>(new Map<bigint, Sendable[]>());
   const partnerMessages = new Writable<Sendable[]>([]);
 
   const playerid = session.player.get().id;
@@ -32,38 +32,40 @@ export function Chat (session: ServerSession) {
 
 
   allMessages.subscribeLater(rmsgs=>{
-    partnerMessages.set(rmsgs.get(partner.get().id) ?? [])
+    console.log("All messages updated:", rmsgs);
+    
+    partnerMessages.set(rmsgs.get(partner.get().id.data) ?? [])
+    console.log("Partner messages updated:", partnerMessages.get().length);
+    
   })
 
   partner.subscribeLater(p =>{
-    partnerMessages.set(allMessages.get().get(p.id) ?? []);
-  })
-
-  const chatView = new ChatView(session.player, partner, partnerMessages, m => {
-    if (m.type === "gift") {
-      session.conn.reducers.sendGift(m.receiver, m.animal);
-    }else{
-      session.conn.reducers.sendMessage(m.receiver, m.content);
-    }
+    partnerMessages.set(allMessages.get().get(p.id.data) ?? []);
   })
 
   const addSend = (msg : Sendable) =>{
-    if (msg.sender!== playerid && msg.receiver != playerid) return
+    if (msg.sender.data!== playerid.data  && msg.receiver.data != playerid.data) return console.log("Ignoring message not for this player:", msg);
     const otherParty = msg.sender.data == playerid.data ? msg.receiver : msg.sender;
     allMessages.update(rmsg => {
-      rmsg.set(otherParty, (rmsg.get(otherParty) ?? []).concat (msg))
+      rmsg.set(otherParty.data, (rmsg.get(otherParty.data) ?? []).concat (msg))
+      console.log(rmsg.get(otherParty.data)?.length)
       return rmsg;
     }, true)
   }
 
-  const addMessage = (msg: Message) =>  addSend({...msg, type: "message"});
+  const getname = (id:Identity) => session.conn.db.person.id.find(id)?.name ;
+
+  const addMessage = (msg: Message) => {
+    console.log("Adding message:", msg.content, getname(msg.sender), "to", getname(msg.receiver));
+    addSend({...msg, type: "message"});
+  }
   const addGift = (msg: Gift) =>  addSend({...msg, type: "gift"});
 
   const addPreview = (u: Unread)=>{
     previews.set(u.senders.map(s=>
     ({
       unread:s.data != partner.get().id.data,
-      item: allMessages.get().get(s)![0],
+      item: allMessages.get().get(s.data)![0],
       sender: session.conn.db.person.id.find(s).name ?? "unknown"
     })
     ))
@@ -71,11 +73,10 @@ export function Chat (session: ServerSession) {
 
   session.conn.subscriptionBuilder()
   .onApplied(ctx=>{
-    for (let m of ctx.db.messages.iter() ){addMessage(m);}
-    ctx.db.messages.onInsert((_, msg)=>{addMessage(msg)})
+    ctx.db.messages.onInsert((_, msg)=>{
+      console.log("insert message");
+      addMessage(msg)})
     ctx.db.gifts.onInsert((_, gift)=>{addGift(gift)})
-    ctx.db.unread.onInsert((_, p)=>{addPreview(p)})
-    ctx.db.unread.onUpdate((_,o, p)=>{addPreview(p)})
   })
   .onError(error => console.error("Error in chat subscription:", error))
   .subscribe([
@@ -92,6 +93,13 @@ export function Chat (session: ServerSession) {
   })
 
   PartnerSubscription.subscribe(`SELECT * FROM person WHERE id != '${playeridhex}'`);
+
+
+  const chatView = ChatView(session.player, partner, partnerMessages,
+    m => {session.conn.reducers.sendMessage(partner.get().id, m)},
+    g => {session.conn.reducers.sendGift(partner.get().id, g)},
+  )
+
 
   return {
     sessionsView: sessionsView as HTMLElement,
