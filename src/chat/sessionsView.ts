@@ -3,7 +3,7 @@ import { Identity, Message } from "@clockworklabs/spacetimedb-sdk";
 import { Unread } from "../module_bindings";
 import { Readable } from "../store";
 import { createHTMLElement } from "../html";
-import { Sendable } from "./chat";
+import { Sendable } from "./Chat";
 import { skins } from "../game";
 
 

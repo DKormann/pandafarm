@@ -2,7 +2,7 @@
 import { createHTMLElement, Dialog } from "../html";
 import { Message, Person } from "../module_bindings";
 import { Readable } from "../store";
-import { Sendable } from "./chat";
+import { Sendable } from "./Chat";
 import { skins } from "../game";
 
 export function ChatView(self:Readable<Person>, partner: Readable<Person>, msgs: Readable<Sendable[]>, sendMessage: (msg: string) => void, sendGift: (animal: number) => void): HTMLElement {
