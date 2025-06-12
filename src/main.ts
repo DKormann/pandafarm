@@ -7,7 +7,7 @@ import { DbConnection, ErrorContext, Person, ReducerEventContext, SubscriptionEv
 import { createGame } from "./game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
-import { Chat } from "./chat/chat"
+import { Chat } from "./chat/Chat"
 import { requestCompetition, requestPlayerId } from "./server_helpers"
 import { Reducer } from "."
 
