@@ -150,7 +150,7 @@ function loadPage(session: ServerSession){
   session.goto = (path: string) => {goto(path); loadpath(path)};
 
 
-  const {sessionsView, chatView} = Chat(session);
+  const {sessionsView, chatView, unread} = Chat(session);
   navbar.innerHTML = "";
 
   const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
@@ -162,6 +162,14 @@ function loadPage(session: ServerSession){
   msgbutn.onclick = () => {
     session.goto("/chat")
   }
+
+  unread.subscribe(newunread=>{
+    msgbutn.innerHTML = "messages"
+
+    const len = Array.from(newunread).length
+    if (len> 0) msgbutn.appendChild(createHTMLElement("span", {class:"unread", style: "color:white"}, `${len}`))
+
+  })
 
   function loadpath(url: string){
     let path = url.split("/").filter(p => p.length > 0);

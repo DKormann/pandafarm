@@ -144,7 +144,8 @@ export function Chat (session: ServerSession) {
     chatView: (name: string) =>{
       setPartner(name);
       return chatView as HTMLElement;
-    }
+    },
+    unread,
   }
 
 }
