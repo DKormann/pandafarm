@@ -54,6 +54,11 @@ export function SessionsView(chats: Readable<ChatPreview[]>, unread: Readable<Ma
         class: "session_msg",
       }, (chat.item.type === "message" ? chat.item.content : `🎁 ${skins[chat.item.animal]}`))
     })
+
+    createHTMLElement("button", {class:"bigbutton green", parentElement: sessions}, "new chat").addEventListener("click",e=>{
+      const addname = window.prompt("enter username")
+      if (addname) goto("/user/"+addname)
+    })
   }
 
   chats.subscribe(chats=>{

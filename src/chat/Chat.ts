@@ -71,7 +71,9 @@ export function Chat (session: ServerSession) {
     if (msg.sender.data!== playerid.data  && msg.receiver.data != playerid.data) return console.log("Ignoring message not for this player:", msg);
     const otherParty = msg.sender.data == playerid.data ? msg.receiver : msg.sender;
     allMessages.update(rmsg => {
-      rmsg.set(otherParty.data, (rmsg.get(otherParty.data) ?? []).concat (msg))
+      rmsg.set(otherParty.data, ((rmsg.get(otherParty.data) ?? []).concat (msg)).sort((a,b)=>
+        a.timestamp> b.timestamp? -1 : 1
+      ))
       return rmsg;
     }, true)
   }

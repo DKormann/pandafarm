@@ -94,6 +94,7 @@ h1{
 }
 
 .bigbutton{
+  cursor: pointer;
   background-color: rgb(187, 65, 0);
   font-size: 1.2em;
   border-radius: 1em;
@@ -113,7 +114,7 @@ h1{
   transform: scale(0.95);
 }
 
-#button2{
+#button2, .bigbutton.green{
   background-color: green;
 }
 
