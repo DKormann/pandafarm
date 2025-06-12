@@ -186,9 +186,11 @@ function loadPage(session: ServerSession){
     if (path[0] == "user"){
       if (path[1]!=undefined){
 
+        const {element, scrollToBottom} = chatView(path[1])
         page.appendChild(
-          chatView(path[1])
+          element
         );
+        scrollToBottom();
         return
       }
     }else if (path[0] == "chat"){

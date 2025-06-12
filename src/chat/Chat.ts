@@ -47,7 +47,6 @@ export function Chat (session: ServerSession) {
             "unkown"
           })
         return {
-          unread: false,
           item: msgs[msgs.length - 1],
           sender: name,
           senderId: id,
@@ -60,7 +59,6 @@ export function Chat (session: ServerSession) {
   })
 
   partner.subscribeLater(p =>{
-    console.log("mark read ",p.name, p.id.data);
     session.conn.reducers.markRead(p.id)
     const msgs = allMessages.get().get(p.id.data) ?? []
     console.log(msgs)
@@ -71,14 +69,10 @@ export function Chat (session: ServerSession) {
     if (msg.sender.data!== playerid.data  && msg.receiver.data != playerid.data) return console.log("Ignoring message not for this player:", msg);
     const otherParty = msg.sender.data == playerid.data ? msg.receiver : msg.sender;
     allMessages.update(rmsg => {
-      rmsg.set(otherParty.data, ((rmsg.get(otherParty.data) ?? []).concat (msg)).sort((a,b)=>
-        a.timestamp> b.timestamp? -1 : 1
-      ))
+      rmsg.set(otherParty.data, ((rmsg.get(otherParty.data) ?? []).concat (msg)).sort((a,b)=> a.timestamp> b.timestamp? 1 : -1))
       return rmsg;
     }, true)
   }
-
-  const getname = (id:Identity) => session.conn.db.person.id.find(id)?.name ;
 
   const addMessage = (msg: Message) => {
     addSend({...msg, type: "message"});
@@ -88,7 +82,12 @@ export function Chat (session: ServerSession) {
   const setUnread = (unreadMsg:Unread) =>{
     if (unreadMsg.receiver.data != playerid.data) return
     let unreads = new Map()
-    unreadMsg.senders.forEach(m=>unreads.set(m.data, (unreads.get(m.data) ?? 0) + 1))
+    unreadMsg.senders.forEach(m=>
+      {
+        if (m.data == partner.get().id.data) return
+        unreads.set(m.data, (unreads.get(m.data) ?? 0) + 1)
+      }
+    )
     unread.set(unreads)
   }
 
@@ -100,7 +99,6 @@ export function Chat (session: ServerSession) {
       setUnread(unreadMsg)
     })
     ctx.db.unread.onUpdate((_x,_y,unreadMsg:Unread) => {
-      console.log("unread update");
       setUnread(unreadMsg)
     })
   })
@@ -140,16 +138,15 @@ export function Chat (session: ServerSession) {
     partner.set(session.conn.db.person.name.find(name) )
   }
 
-  const chatView = ChatView(session.player, partner, partnerMessages,
-    m => {session.conn.reducers.sendMessage(partner.get().id, m)},
-    g => {session.conn.reducers.sendGift(partner.get().id, g)},
-  )
-
   return {
     sessionsView: sessionsView as HTMLElement,
     chatView: (name: string) =>{
       setPartner(name);
-      return chatView as HTMLElement;
+      return ChatView(session.player, partner, partnerMessages,
+        m => {session.conn.reducers.sendMessage(partner.get().id, m)},
+        g => {session.conn.reducers.sendGift(partner.get().id, g)},
+      );
+
     },
     unread,
   }

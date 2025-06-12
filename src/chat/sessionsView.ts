@@ -8,7 +8,6 @@ import { skins } from "../game";
 
 
 export type ChatPreview ={
-  unread: boolean,
   item: Sendable,
   senderId: bigint,
   sender: string,
