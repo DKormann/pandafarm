@@ -31,34 +31,30 @@ import {
   deepEqual,
 } from "@clockworklabs/spacetimedb-sdk";
 
-import { Sendable as __Sendable } from "./sendable_type";
-
-export type SendItem = {
-  receiver: Identity,
-  item: __Sendable,
+export type MarkRead = {
+  sender: Identity,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace SendItem {
+export namespace MarkRead {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("receiver", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("item", __Sendable.getTypeScriptAlgebraicType()),
+      new ProductTypeElement("sender", AlgebraicType.createIdentityType()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: SendItem): void {
-    SendItem.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: MarkRead): void {
+    MarkRead.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): SendItem {
-    return SendItem.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): MarkRead {
+    return MarkRead.getTypeScriptAlgebraicType().deserialize(reader);
   }
 
 }

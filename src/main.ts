@@ -7,7 +7,7 @@ import { DbConnection, ErrorContext, Person, ReducerEventContext, SubscriptionEv
 import { createGame } from "./game"
 import { createLeaderboard } from "./leaderboard"
 import { createHTMLElement } from "./html"
-import { Chat } from "./chat/Chat"
+import { Chat } from "./chat/chat"
 import { requestCompetition, requestPlayerId } from "./server_helpers"
 import { Reducer } from "."
 
@@ -36,7 +36,7 @@ export type ServerSession = {
 
 
 const head = createHTMLElement("div", {parentElement:document.body, id:"head"})
-const title = createHTMLElement("h2", {parentElement:head, id:"title", }, "🏠 Panda Farm")
+const title = createHTMLElement("h2", {parentElement:head, id:"title", }, "Panda Farm")
 const navbar = createHTMLElement("nav", {parentElement:head, id:"navbar"});
 
 const page = createHTMLElement("div", {id:"page", parentElement:document.body});

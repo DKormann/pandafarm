@@ -352,11 +352,11 @@ p.leaderitem{
 }
 
 .session{
-  /* width: 100%; */
+
   text-align: left;
   cursor: pointer;
-  /* padding-left: 1em; */
   margin:1em;
+  padding-bottom: .5em;
 
   border-bottom: 1px solid var(--color);
 }
@@ -365,3 +365,11 @@ p.leaderitem{
   font-weight: bold;
 }
 
+.unread{
+  background-color: rgb(0, 230, 0);
+  border-radius: 1em;
+  /* min-width: 1em; */
+  padding: 0em .3em;
+  margin:0 .2em;
+  display: inline-block;
+}

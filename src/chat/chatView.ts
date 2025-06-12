@@ -1,8 +1,8 @@
 
-import { createHTMLElement } from "../html";
+import { createHTMLElement, Dialog } from "../html";
 import { Message, Person } from "../module_bindings";
 import { Readable } from "../store";
-import { Sendable } from "./Chat";
+import { Sendable } from "./chat";
 import { skins } from "../game";
 
 export function ChatView(self:Readable<Person>, partner: Readable<Person>, msgs: Readable<Sendable[]>, sendMessage: (msg: string) => void, sendGift: (animal: number) => void): HTMLElement {
@@ -64,6 +64,27 @@ export function ChatView(self:Readable<Person>, partner: Readable<Person>, msgs:
       }
     }
   });
+
+  sendbutton.addEventListener("click", () => {
+    const msg = message_input.value.trim();
+    if (msg) {
+      sendMessage(msg);
+      message_input.value = "";
+    }
+  });
+
+  giftbutton.addEventListener("click", () => {
+    const dialog = Dialog();
+    dialog.appendChild(createHTMLElement("h2", {}, "Choose a gift:"));
+    for (let i = 0; i < skins.length; i++) {
+      const option = createHTMLElement("p", {class:"option"}, `${skins[i]} ${i**2}$`)
+      dialog.appendChild(option);
+      option.addEventListener("click", () => {
+        sendGift(i);
+      })
+    }
+ 
+  })
 
   return el
     

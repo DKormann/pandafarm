@@ -359,8 +359,10 @@ pub fn send_message(ctx: &ReducerContext, receiver: Identity, content: String) -
   Ok(())
 }
 
+#[reducer]
 pub fn mark_read(ctx: &ReducerContext, sender: Identity)  -> () {
   if let Some(mut unread) = ctx.db.unread().receiver().find(ctx.sender) {
+    log::info!("found unreads");
     unread.senders.retain(|x| *x != sender);
     ctx.db.unread().receiver().update(unread);
   };

@@ -23,10 +23,11 @@ export type Sendable =
 export function Chat (session: ServerSession) {
 
   const previews = new Writable<ChatPreview[]>([]);
-  const sessionsView = SessionsView(previews, session.goto)
   const partner = new Writable<Person>(session.player.get());
   const allMessages = new Writable<Map<bigint, Sendable[]>>(new Map<bigint, Sendable[]>());
   const partnerMessages = new Writable<Sendable[]>([]);
+  const unread = new Writable<Map<bigint, number>>(new Map<bigint, number>)
+  const sessionsView = SessionsView(previews, unread, session.goto)
 
   const playerid = session.player.get().id;
   const playeridhex = playerid.toHexString();
@@ -49,6 +50,7 @@ export function Chat (session: ServerSession) {
           unread: false,
           item: msgs[msgs.length - 1],
           sender: name,
+          senderId: id,
         } as ChatPreview;
       })
     )).sort((a, b) => {
@@ -58,6 +60,8 @@ export function Chat (session: ServerSession) {
   })
 
   partner.subscribeLater(p =>{
+    console.log("mark read ",p.name);
+    session.conn.reducers.markRead(p.id)
     partnerMessages.set(allMessages.get().get(p.id.data) ?? []);
   })
 
@@ -66,7 +70,6 @@ export function Chat (session: ServerSession) {
     const otherParty = msg.sender.data == playerid.data ? msg.receiver : msg.sender;
     allMessages.update(rmsg => {
       rmsg.set(otherParty.data, (rmsg.get(otherParty.data) ?? []).concat (msg))
-      console.log(rmsg.get(otherParty.data)?.length)
       return rmsg;
     }, true)
   }
@@ -74,16 +77,28 @@ export function Chat (session: ServerSession) {
   const getname = (id:Identity) => session.conn.db.person.id.find(id)?.name ;
 
   const addMessage = (msg: Message) => {
-    console.log("Adding message:", msg.content, getname(msg.sender), "to", getname(msg.receiver));
     addSend({...msg, type: "message"});
   }
   const addGift = (msg: Gift) =>  addSend({...msg, type: "gift"});
 
+  const setUnread = (unreadMsg:Unread) =>{
+    if (unreadMsg.receiver.data != playerid.data) return
+    let unreads = new Map()
+    unreadMsg.senders.forEach(m=>unreads.set(m.data, (unreads.get(m.data) ?? 0) + 1))
+    unread.set(unreads)
+  }
 
   session.conn.subscriptionBuilder()
   .onApplied(ctx=>{
     ctx.db.messages.onInsert((_, msg)=>{addMessage(msg)})
     ctx.db.gifts.onInsert((_, gift)=>{addGift(gift)})
+    ctx.db.unread.onInsert((_, unreadMsg:Unread) => {
+      setUnread(unreadMsg)
+    })
+    ctx.db.unread.onUpdate((_x,_y,unreadMsg:Unread) => {
+      console.log("unread update");
+      setUnread(unreadMsg)
+    })
   })
   .onError(error => console.error("Error in chat subscription:", error))
   
@@ -92,8 +107,6 @@ export function Chat (session: ServerSession) {
     `SELECT * FROM gifts WHERE receiver == '${playeridhex}' OR sender == '${playeridhex}'`,
     `SELECT * FROM unread WHERE receiver == '${playeridhex}'`,
   ])
-
-
 
   const PartnerSubscriptionBuilder = session.conn.subscriptionBuilder()
   .onApplied((ctx) => {

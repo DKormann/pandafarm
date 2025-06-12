@@ -38,6 +38,8 @@ import { IdentityConnected } from "./identity_connected_reducer.ts";
 export { IdentityConnected };
 import { IdentityDisconnected } from "./identity_disconnected_reducer.ts";
 export { IdentityDisconnected };
+import { MarkRead } from "./mark_read_reducer.ts";
+export { MarkRead };
 import { PlayGreen } from "./play_green_reducer.ts";
 export { PlayGreen };
 import { PlayRed } from "./play_red_reducer.ts";
@@ -48,8 +50,6 @@ import { SellGameWorth } from "./sell_game_worth_reducer.ts";
 export { SellGameWorth };
 import { SendGift } from "./send_gift_reducer.ts";
 export { SendGift };
-import { SendItem } from "./send_item_reducer.ts";
-export { SendItem };
 import { SendMessage } from "./send_message_reducer.ts";
 export { SendMessage };
 import { SetPersonName } from "./set_person_name_reducer.ts";
@@ -92,8 +92,6 @@ import { Payment } from "./payment_type.ts";
 export { Payment };
 import { Person } from "./person_type.ts";
 export { Person };
-import { Sendable } from "./sendable_type.ts";
-export { Sendable };
 import { Unread } from "./unread_type.ts";
 export { Unread };
 
@@ -150,6 +148,10 @@ const REMOTE_MODULE = {
       reducerName: "identity_disconnected",
       argsType: IdentityDisconnected.getTypeScriptAlgebraicType(),
     },
+    mark_read: {
+      reducerName: "mark_read",
+      argsType: MarkRead.getTypeScriptAlgebraicType(),
+    },
     play_green: {
       reducerName: "play_green",
       argsType: PlayGreen.getTypeScriptAlgebraicType(),
@@ -169,10 +171,6 @@ const REMOTE_MODULE = {
     send_gift: {
       reducerName: "send_gift",
       argsType: SendGift.getTypeScriptAlgebraicType(),
-    },
-    send_item: {
-      reducerName: "send_item",
-      argsType: SendItem.getTypeScriptAlgebraicType(),
     },
     send_message: {
       reducerName: "send_message",
@@ -212,12 +210,12 @@ export type Reducer = never
 | { name: "CreatePerson", args: CreatePerson }
 | { name: "IdentityConnected", args: IdentityConnected }
 | { name: "IdentityDisconnected", args: IdentityDisconnected }
+| { name: "MarkRead", args: MarkRead }
 | { name: "PlayGreen", args: PlayGreen }
 | { name: "PlayRed", args: PlayRed }
 | { name: "ResetBank", args: ResetBank }
 | { name: "SellGameWorth", args: SellGameWorth }
 | { name: "SendGift", args: SendGift }
-| { name: "SendItem", args: SendItem }
 | { name: "SendMessage", args: SendMessage }
 | { name: "SetPersonName", args: SetPersonName }
 ;
@@ -251,6 +249,22 @@ export class RemoteReducers {
 
   removeOnIdentityDisconnected(callback: (ctx: ReducerEventContext) => void) {
     this.connection.offReducer("identity_disconnected", callback);
+  }
+
+  markRead(sender: Identity) {
+    const __args = { sender };
+    let __writer = new BinaryWriter(1024);
+    MarkRead.getTypeScriptAlgebraicType().serialize(__writer, __args);
+    let __argsBuffer = __writer.getBuffer();
+    this.connection.callReducer("mark_read", __argsBuffer, this.setCallReducerFlags.markReadFlags);
+  }
+
+  onMarkRead(callback: (ctx: ReducerEventContext, sender: Identity) => void) {
+    this.connection.onReducer("mark_read", callback);
+  }
+
+  removeOnMarkRead(callback: (ctx: ReducerEventContext, sender: Identity) => void) {
+    this.connection.offReducer("mark_read", callback);
   }
 
   playGreen() {
@@ -317,22 +331,6 @@ export class RemoteReducers {
     this.connection.offReducer("send_gift", callback);
   }
 
-  sendItem(receiver: Identity, item: Sendable) {
-    const __args = { receiver, item };
-    let __writer = new BinaryWriter(1024);
-    SendItem.getTypeScriptAlgebraicType().serialize(__writer, __args);
-    let __argsBuffer = __writer.getBuffer();
-    this.connection.callReducer("send_item", __argsBuffer, this.setCallReducerFlags.sendItemFlags);
-  }
-
-  onSendItem(callback: (ctx: ReducerEventContext, receiver: Identity, item: Sendable) => void) {
-    this.connection.onReducer("send_item", callback);
-  }
-
-  removeOnSendItem(callback: (ctx: ReducerEventContext, receiver: Identity, item: Sendable) => void) {
-    this.connection.offReducer("send_item", callback);
-  }
-
   sendMessage(receiver: Identity, content: string) {
     const __args = { receiver, content };
     let __writer = new BinaryWriter(1024);
@@ -373,6 +371,11 @@ export class SetReducerFlags {
     this.createPersonFlags = flags;
   }
 
+  markReadFlags: CallReducerFlags = 'FullUpdate';
+  markRead(flags: CallReducerFlags) {
+    this.markReadFlags = flags;
+  }
+
   playGreenFlags: CallReducerFlags = 'FullUpdate';
   playGreen(flags: CallReducerFlags) {
     this.playGreenFlags = flags;
@@ -396,11 +399,6 @@ export class SetReducerFlags {
   sendGiftFlags: CallReducerFlags = 'FullUpdate';
   sendGift(flags: CallReducerFlags) {
     this.sendGiftFlags = flags;
-  }
-
-  sendItemFlags: CallReducerFlags = 'FullUpdate';
-  sendItem(flags: CallReducerFlags) {
-    this.sendItemFlags = flags;
   }
 
   sendMessageFlags: CallReducerFlags = 'FullUpdate';
