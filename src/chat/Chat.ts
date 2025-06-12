@@ -60,9 +60,11 @@ export function Chat (session: ServerSession) {
   })
 
   partner.subscribeLater(p =>{
-    console.log("mark read ",p.name);
+    console.log("mark read ",p.name, p.id.data);
     session.conn.reducers.markRead(p.id)
-    partnerMessages.set(allMessages.get().get(p.id.data) ?? []);
+    const msgs = allMessages.get().get(p.id.data) ?? []
+    console.log(msgs)
+    partnerMessages.set(msgs)
   })
 
   const addSend = (msg : Sendable) =>{
@@ -111,12 +113,14 @@ export function Chat (session: ServerSession) {
   const PartnerSubscriptionBuilder = session.conn.subscriptionBuilder()
   .onApplied((ctx) => {
     ctx.db.person.onUpdate((_, old, person) =>{
-      console.log("partner update");
-      partner.set(person);
+      if (person.id.data == playerid.data){
+        console.log("partner update");
+        partner.set(person);
+      }
     })
     ctx.db.person.onInsert((_, person) => {
-      console.log("partner insert", person.name);
       if (person.id.data === playerid.data) {
+        console.log("partner insert", person.name);
         partner.set(person);
       }
     })

@@ -165,7 +165,6 @@ function loadPage(session: ServerSession){
 
   unread.subscribe(newunread=>{
     msgbutn.innerHTML = "messages"
-
     const len = Array.from(newunread).length
     if (len> 0) msgbutn.appendChild(createHTMLElement("span", {class:"unread", style: "color:white"}, `${len}`))
 

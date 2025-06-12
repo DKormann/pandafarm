@@ -77,7 +77,7 @@ export function ChatView(self:Readable<Person>, partner: Readable<Person>, msgs:
     const dialog = Dialog();
     dialog.appendChild(createHTMLElement("h2", {}, "Choose a gift:"));
     for (let i = 0; i < skins.length; i++) {
-      const option = createHTMLElement("p", {class:"option"}, `${skins[i]} ${i**2}$`)
+      const option = createHTMLElement("p", {class:"option"}, `${skins[i]} ${2**i}$`)
       dialog.appendChild(option);
       option.addEventListener("click", () => {
         sendGift(i);
