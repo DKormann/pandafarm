@@ -113,9 +113,12 @@ export function Chat (session: ServerSession) {
   const PartnerSubscriptionBuilder = session.conn.subscriptionBuilder()
   .onApplied((ctx) => {
     ctx.db.person.onUpdate((_, old, person) =>{
-      if (person.id.data == playerid.data){
-        console.log("partner update");
+      if (person.id.data == partner.get().id.data){
+        console.log("partner update", person.name);
         partner.set(person);
+      }else{
+        console.log("non partner update", person.name);
+        
       }
     })
     ctx.db.person.onInsert((_, person) => {
@@ -132,10 +135,15 @@ export function Chat (session: ServerSession) {
   let PartnerSubscription :any = null;
 
   const setPartner = (name: string) =>{
-    let newsub = PartnerSubscriptionBuilder.subscribe(`SELECT * FROM person WHERE name == '${name}'`);
-    if (PartnerSubscription) PartnerSubscription.unsubscribe();
-    PartnerSubscription = newsub;
-    partner.set(session.conn.db.person.name.find(name) )
+
+    requestPlayerName(session.conn, name).then(p=>{
+      partner.set(p);
+      let newsub = PartnerSubscriptionBuilder.subscribe(`SELECT * FROM person WHERE name == '${name}'`);
+      if (PartnerSubscription) PartnerSubscription.unsubscribe();
+      PartnerSubscription = newsub;
+    })
+    // partner.set(session.conn.db.person.name.find(name) )
+
   }
 
   return {
