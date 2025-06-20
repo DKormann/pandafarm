@@ -142,8 +142,6 @@ export function Chat (session: ServerSession) {
       if (PartnerSubscription) PartnerSubscription.unsubscribe();
       PartnerSubscription = newsub;
     })
-    // partner.set(session.conn.db.person.name.find(name) )
-
   }
 
   return {

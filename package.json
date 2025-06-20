@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "BUILD_TARGET=gh-pages vite build --force",
     "build:gh-pages": "BUILD_TARGET=gh-pages vite build --force",
+    "build:local": "BUILD_TARGET=local vite build --force",
     "preview": "vite preview",
     "check": "tsc --noEmit"
   },
