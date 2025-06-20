@@ -1,7 +1,8 @@
 
 use std::vec;
-
 use spacetimedb::{rand::Rng, reducer, table, Identity, ReducerContext, Table};
+
+mod pvpmode;
 
 
 #[derive(spacetimedb::SpacetimeType, Clone, Copy)]
@@ -403,3 +404,11 @@ pub fn send_gift(ctx: &ReducerContext, receiver: Identity, animal: u32) -> Resul
   ctx.db.gifts().insert(gift);
   Ok(())
 }
+
+
+#[reducer]
+pub fn hello(ctx: &ReducerContext) -> Result<(), String> {
+  let h = pvpmode::hello();
+  Ok(())
+}
+
