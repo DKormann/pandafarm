@@ -33,7 +33,7 @@ export function SessionsView(chats: Readable<ChatPreview[]>, unread: Readable<Ma
       });
 
       session.addEventListener("click", () => {
-        goto(`/user/${chat.sender}`);
+        goto(`/chat/${chat.sender}`);
       });
 
       createHTMLElement("p", {
@@ -56,7 +56,7 @@ export function SessionsView(chats: Readable<ChatPreview[]>, unread: Readable<Ma
 
     createHTMLElement("button", {class:"bigbutton green", parentElement: sessions}, "new chat").addEventListener("click",e=>{
       const addname = window.prompt("enter username")
-      if (addname) goto("/user/"+addname)
+      if (addname) goto("/chat/"+addname)
     })
   }
 

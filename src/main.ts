@@ -10,6 +10,7 @@ import { createHTMLElement } from "./html"
 import { Chat } from "./chat/Chat"
 import { requestCompetition, requestPlayerId } from "./server_helpers"
 import { Reducer } from "."
+import { createDuell } from "./duell"
 
 export {}
 
@@ -146,60 +147,77 @@ function loadPage(session: ServerSession){
 
   const board = createLeaderboard(session);
   const game = createGame(session);
+  const home = createHTMLElement("div", {children: [game, board]})
+
+  const duell = createDuell(session);
 
   session.goto = (path: string) => {goto(path); loadpath(path)};
-
-
   const {sessionsView, chatView, unread} = Chat(session);
-  navbar.innerHTML = "";
 
-  const homebutn = createHTMLElement("span", {parentElement:navbar, id:"homebutn"}, "home ")
-  homebutn.onclick = () => {
-    session.goto("/")
+
+  type navoption = {
+    name: string,
+    onclick: (path:string[]) => HTMLElement,
+    button?: HTMLElement,
   }
 
-  const msgbutn = createHTMLElement("span", {parentElement:navbar, id:"msgbutn"}, "messages")
-  msgbutn.onclick = () => {
-    session.goto("/chat")
-  }
+  let navoptions: navoption[] = [{
+      name: "home",
+      onclick: ()=> home,
+    },{
+      name: "duell",
+      onclick: (path:string[])=> duell,
+    },{
+      name: "chat",
+      onclick: (path:string[])=> {
+        if (path.length == 0) return sessionsView
+        let {element, scrollToBottom} = chatView(path[0])
+        setTimeout(() => {
+          scrollToBottom()
+        }, 100);
+        return element
+      },
+    }
+  ]
 
-  unread.subscribe(newunread=>{
-    msgbutn.innerHTML = "messages"
-    const len = Array.from(newunread).length
-    if (len> 0) msgbutn.appendChild(createHTMLElement("span", {class:"unread", style: "color:white"}, `${len}`))
-
+  navoptions.forEach(op=>{
+    op.button = createHTMLElement("span", {parentElement:navbar, class:"navbutn"}, op.name)
+    op.button.onclick = () => {
+      session.goto(op.name)
+    }
   })
 
-  function loadpath(url: string){
+  unread.subscribe(newunread=>{
+    const msgbutn = navoptions.find(op=>op.name=="chat")!.button!
+    msgbutn.innerHTML = "chat"
+    const len = Array.from(newunread).length
+    if (len> 0) msgbutn.appendChild(createHTMLElement("span", {class:"unread", style: "color:white"}, `${len}`))
+  })
+
+
+  const loadpath = (url: string) => {
     let path = url.split("/").filter(p => p.length > 0);
     navbar.querySelectorAll(".active").forEach(el => el.classList.remove("active"));
-
     page.innerHTML = "";
     if (path[0] == "pandafarm") path = path.slice(1);
     if (path[0] == "local") path = path.slice(1);
-    if (path.length == 0){
-      homebutn.classList.add("active");
-      page.appendChild(game);
-      page.appendChild(board);
-      return;
-    }
-    if (path[0] == "user"){
-      if (path[1]!=undefined){
-
-        const {element, scrollToBottom} = chatView(path[1])
-        page.appendChild(
-          element
-        );
-        scrollToBottom();
-        return
+    if (path.length == 0) path = ["home"];
+    let found = false
+    navoptions.forEach(op=>{
+      if (op.name == path[0]){
+        op.button?.classList.add("active")
+        page.appendChild(op.onclick(path.slice(1)))
+        found = true
+      }else{
+        op.button?.classList.remove("active")
       }
-    }else if (path[0] == "chat"){
-      msgbutn.classList.add("active");
-      page.appendChild(sessionsView);
-      return
+    })
+    if (!found){
+      page.appendChild(createHTMLElement("h1", {}, "Page not found"))
     }
-    page.appendChild(createHTMLElement("h1", {}, "Page not found"));
+
   }
+
 
   window.addEventListener("popstate", (event) => {
     log("Popstate event", event);
