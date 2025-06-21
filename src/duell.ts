@@ -17,7 +17,6 @@ export const createDuell : navcomponent = (session: ServerSession) => {
       element: el,
     }),
   }
-  
 }
 
 
