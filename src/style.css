@@ -1,3 +1,13 @@
+/* Hide scrollbars for all browsers */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
 body{
   background-color: #333;
 
@@ -14,15 +24,6 @@ body{
 
 }
 
-/* 
-@media (prefers-color-scheme: light) {
-  body {
-    background-color: #fff;
-    color: #333;
-    --color : #333;
-    --bg : #fff;
-  }
-} */
 
 #head{
   top:0;
